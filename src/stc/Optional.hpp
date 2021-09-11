@@ -1,6 +1,5 @@
 #pragma once
 
-namespace stc {
 #if __has_include(<optional>)
     #include <optional>
     template <typename T>
@@ -10,4 +9,3 @@ namespace stc {
     template <typename T>
     using StdOptional = std::experimental::optional<T>;
 #endif
-}

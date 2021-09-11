@@ -1,11 +1,9 @@
 #pragma once
 
-namespace stc {
 #if __has_include(<filesystem>)
     #include <filesystem>
-    namespace fs = std::filesystem;
+    namespace stcfs = std::filesystem;
 #else
     #include "experimental/filesystem"
-    namespace fs = std::experimental::filesystem;
+    namespace stcfs = std::experimental::filesystem;
 #endif
-}
