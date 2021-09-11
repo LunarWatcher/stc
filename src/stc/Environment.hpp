@@ -7,6 +7,12 @@
 #include "FS.hpp"
 #include "Optional.hpp"
 
+#if !defined(_WIN32)
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+#endif
+
 namespace stc {
 
 inline std::string getEnv(const char* name, const std::string& fail = "") {
@@ -80,7 +86,7 @@ inline std::string expandUserPath(const std::string& inputPath) {
     pathSplit.push_back(cache);
 
     //  Parse off the username
-    if (rawPath.length() >= 2 && !isSeparator(rawPath.at(1))) {
+    if (rawPath.length() >= 2 && rawPath.at(1) != '/') {
         // ~username
         // ~username/path
         username = pathSplit.at(0);
@@ -111,8 +117,7 @@ inline std::string expandUserPath(const std::string& inputPath) {
             auto envHomePath = getEnv("HOMEPATH");
 
             if (envHomePath == "") {
-                std::cerr << "Unable to find %HOMEPATH%. Specify the path explicitly instead."
-                          << "\n";
+                throw std::runtime_error("Unable to find %HOMEPATH%. Specify the path explicitly instead.");
                 return "";
             }
             homePath = homeDrive + envHomePath;
@@ -120,14 +125,14 @@ inline std::string expandUserPath(const std::string& inputPath) {
             homePath = userProfile;
 
     } else {
-        std::cerr << "This doesn't work."
-                  << " Due to Windows having a very limited API for expanding user paths, and it relies on environment "
-                  << "variables and assumptions, me (the developer), has decided to not implement ~user expansion on "
+        throw std::runtime_error("This doesn't work."
+                     " Due to Windows having a very limited API for expanding user paths, and it relies on environment "
+                     "variables and assumptions, me (the developer), has decided to not implement ~user expansion on "
                      "Windows. "
-                  << "I cannot easily test it, nor can I find any reassuring information for a universal pattern I can "
+                     "I cannot easily test it, nor can I find any reassuring information for a universal pattern I can "
                      "use. "
-                  << "Replace your path with an absolute path instead. An implementation for this feature may be "
-                     "available in the future.\n";
+                     "Replace your path with an absolute path instead. An implementation for this feature may be "
+                     "available in the future.");
         return "";
     }
     // Force forward slashes
@@ -165,8 +170,8 @@ inline std::string expandUserPath(const std::string& inputPath) {
     }
 
     if (passwdPtr == nullptr && homePath == "") {
-        std::cerr << "Failed to expand the user path for " << rawPath << ". The system seems to think you don't exist. "
-                  << "Please specify the path to use - don't abbreviate it with ~.\n";
+        throw std::runtime_error(std::string("Failed to expand the user path for ") + rawPath + ". The system seems to think you don't exist. "
+                     "Please specify the path to use - don't abbreviate it with ~.\n");
         return "";
     } else if (homePath == "")
         homePath = passwdPtr->pw_dir;
