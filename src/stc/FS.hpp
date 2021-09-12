@@ -2,8 +2,8 @@
 
 #if __has_include(<filesystem>)
     #include <filesystem>
-    namespace stcfs = std::filesystem;
+    namespace fs = std::filesystem;
 #else
     #include "experimental/filesystem"
-    namespace stcfs = std::experimental::filesystem;
+    namespace fs = std::experimental::filesystem;
 #endif
