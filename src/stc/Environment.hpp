@@ -44,19 +44,13 @@ inline std::string getEnv(const char* name, const std::string& fail = "") {
 #endif
 }
 
-inline std::string joinPath(const std::string& a, const std::string& b) {
-    if (a.back() == '/' || a.back() == '\\' || b.front() == '/' || b.front() == '\\')
-        return a + b;
-    return a + "/" + b;
-}
-
 /**
  * Expands a user path (AKA a path starting with ~), independently of the OS.
  * This requires several OS-specific calls (specifically between Windows and UNIX, from what I can tell.
  * There's not much of a difference in this area between for an instance Linux and Mac. Special
  * implementation requirements will be taken when we get to a point where it's needed)
  */
-inline std::string expandUserPath(const std::string& inputPath) {
+inline fs::path expandUserPath(const std::string& inputPath) {
     // Convert all backslashes to forward slashes for processing (fuck you Windows)
     std::string rawPath = std::regex_replace(inputPath, std::regex("\\\\"), "/");
 
@@ -169,17 +163,16 @@ inline std::string expandUserPath(const std::string& inputPath) {
         passwdPtr = getpwnam(name.c_str());
     }
 
-    if (passwdPtr == nullptr && homePath == "") {
+    if (passwdPtr == nullptr) {
         throw std::runtime_error(std::string("Failed to expand the user path for ") + rawPath + ". The system seems to think you don't exist. "
                      "Please specify the path to use - don't abbreviate it with ~.\n");
-        return "";
-    } else if (homePath == "")
-        homePath = passwdPtr->pw_dir;
+    }
+    homePath = passwdPtr->pw_dir;
 #endif
-    return joinPath(homePath, remainingPath);
+    return fs::path{homePath} / remainingPath;
 }
 
-inline std::string getHome() {
+inline fs::path getHome() {
 
     StdOptional<std::string> username;
     std::string remainingPath;
@@ -238,12 +231,12 @@ inline std::string getHome() {
     // of code, and one API call, instead of that if-statement cascade bullshit Windows needs
     passwdPtr = getpwuid(getuid());
 
-    if (passwdPtr == nullptr && homePath == "") {
+    if (passwdPtr == nullptr) {
         throw std::runtime_error("Failed to find home directory");
-    } else if (homePath == "")
-        homePath = passwdPtr->pw_dir;
+    }
+    homePath = passwdPtr->pw_dir;
 #endif
-    return homePath;
+    return fs::path{homePath};
 }
 
 inline std::string syscommand(const std::string& command) {
