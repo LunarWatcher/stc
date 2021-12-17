@@ -68,14 +68,14 @@ inline std::vector<std::string> split(const std::string& input, const std::strin
     long long count = 0;
     while ((pos = input.find(delimiter, index)) != std::string::npos) {
         token = input.substr(0, pos);
-        index = pos + delimiter.size();
+        index = pos + delimiter.size() - 1;
         out.push_back(token);
         count++;
         if (count == limit) {
             break;
         }
     }
-    if (index < input.size() - 1) {
+    if (index < input.size()) {
         out.push_back(input.substr(index));
     }
     return out;
