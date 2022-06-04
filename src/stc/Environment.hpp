@@ -3,6 +3,7 @@
 #include <string>
 #include <cstdlib>
 #include <regex>
+#include <array>
 
 #include "FS.hpp"
 #include "Optional.hpp"
@@ -11,6 +12,9 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
+#else
+#define popen _popen
+#define pclose _pclose
 #endif
 
 namespace stc {
