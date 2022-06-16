@@ -76,7 +76,7 @@ inline fs::path expandUserPath(const std::string& inputPath) {
     // splitString but smaller so I don't have to import everything
     size_t pos = 0;
     std::string token, cache;
-    pos = mod.find("/");
+    pos = mod.find('/');
     token = mod.substr(0, pos);
     cache = mod;
     cache.erase(0, pos + 1);
@@ -107,14 +107,14 @@ inline fs::path expandUserPath(const std::string& inputPath) {
     if (!username.has_value()) {
         auto userProfile = getEnv("USERPROFILE");
 
-        if (userProfile == "") {
+        if (userProfile.empty()) {
             auto homeDrive = getEnv("HOMEDRIVE");
-            if (homeDrive == "")
+            if (homeDrive.empty())
                 homeDrive = "";
 
             auto envHomePath = getEnv("HOMEPATH");
 
-            if (envHomePath == "") {
+            if (envHomePath.empty()) {
                 throw std::runtime_error("Unable to find %HOMEPATH%. Specify the path explicitly instead.");
                 return "";
             }
@@ -185,14 +185,14 @@ inline fs::path getHome() {
 #if defined(_WIN32) || defined(_WIN64)
     auto userProfile = getEnv("USERPROFILE");
 
-    if (userProfile == "") {
+    if (userProfile.empty()) {
         auto homeDrive = getEnv("HOMEDRIVE");
-        if (homeDrive == "")
+        if (homeDrive.empty())
             homeDrive = "";
 
         auto envHomePath = getEnv("HOMEPATH");
 
-        if (envHomePath == "") {
+        if (envHomePath.empty()) {
             throw std::runtime_error("Failed to find home path");
         }
         homePath = homeDrive + envHomePath;
