@@ -7,7 +7,6 @@
 #include <sstream>
 #include <vector>
 #include <map>
-#include <iostream>
 
 namespace stc {
 
@@ -77,25 +76,29 @@ inline std::vector<float> generateUVCoords(int atlasWidth, int atlasHeight, cons
 }
 
 inline std::map<std::string, std::any> parseLine(const std::string& line) {
-
     std::map<std::string, std::any> keys;
 
-    size_t i = line.find(' ');
+    size_t i = line.find(' ') + 1;
     do {
+        // le sigh
+        if (line[i] == ' ') {
+            ++i;
+            continue;
+        }
         auto eq = line.find('=', i),
-             sp = line.find(' ', i);
+            sp = line.find(' ', i);
+        if (sp == std::string::npos) sp = line.size();
 
-        auto fragment = line.substr(i, i - sp);
-        std::cout << fragment << std::endl;
-        auto k = line.substr(i, i - eq);
-        std::cout << k << std::endl;
-        auto v = line.substr(eq, sp - eq);
-        std::cout << v << std::endl;
+
+        auto fragment = line.substr(i, sp - i);
+        auto k = fragment.substr(0, eq - i);
+        auto v = fragment.substr(eq - i + 1, sp - eq);
+
         std::any value;
-        if (v.find('"')) {
+        if (v.find('"') != std::string::npos) {
             if (v == "\"\"") value = std::string("");
             else value = v.substr(1, v.size() - 2);
-        } else if (v.find(',')) {
+        } else if (v.find(',') != std::string::npos) {
             std::vector<int> tmp;
 
             std::string buff;
@@ -108,7 +111,8 @@ inline std::map<std::string, std::any> parseLine(const std::string& line) {
         } else {
             value = std::stoi(v);
         }
-        keys[k] = v;
+        keys[k] = value;
+        i = sp + 1;
     } while (i < line.size());
     return keys;
 }
@@ -121,20 +125,25 @@ inline FntInfo loadAndParseFnt(const std::string& fileName) {
     fs::path p(fileName);
     std::ifstream f(p);
 
+    if (!f.is_open()) {
+        throw std::runtime_error("File not found");
+    }
+
     FntInfo info;
 
     std::string buff;
+
     while (std::getline(f, buff)) {
         auto vars = parseLine(buff);
 
         if (buff.starts_with("info")) {
             info.faceName = std::any_cast<std::string>(vars.at("face"));
             info.size = std::any_cast<int>(vars.at("size"));
-            info.bold = std::any_cast<bool>(vars.at("bold"));
-            info.italic = std::any_cast<bool>(vars.at("italic"));
-            info.unicode = std::any_cast<bool>(vars.at("unicode"));
-            info.smooth = std::any_cast<bool>(vars.at("smooth"));
-            info.antiAliasing = std::any_cast<bool>(vars.at("aa"));
+            info.bold = std::any_cast<int>(vars.at("bold"));
+            info.italic = std::any_cast<int>(vars.at("italic"));
+            info.unicode = std::any_cast<int>(vars.at("unicode"));
+            info.smooth = std::any_cast<int>(vars.at("smooth"));
+            info.antiAliasing = std::any_cast<int>(vars.at("aa"));
             auto padding = std::any_cast<std::vector<int>>(vars.at("padding"));
 
             info.padTop = padding.at(0);
@@ -142,15 +151,14 @@ inline FntInfo loadAndParseFnt(const std::string& fileName) {
             info.padBottom = padding.at(2);
             info.padLeft = padding.at(3);
 
-
             auto spacing = std::any_cast<std::vector<int>>(vars.at("spacing"));
             info.spaceLeft = spacing.at(0);
             info.spaceTop = spacing.at(1);
         } else if (buff.starts_with("common")) {
             info.lineHeight = std::any_cast<int>(vars.at("lineHeight"));
-            info.base = std::any_cast<int>("base");
-            info.scaleW = std::any_cast<int>("scaleW");
-            info.scaleH = std::any_cast<int>("scaleH");
+            info.base = std::any_cast<int>(vars.at("base"));
+            info.scaleW = std::any_cast<int>(vars.at("scaleW"));
+            info.scaleH = std::any_cast<int>(vars.at("scaleH"));
 
         } else if (buff.starts_with("page")) {
             info.pages.push_back(std::any_cast<std::string>(vars.at("file")));
