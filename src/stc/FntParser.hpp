@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FS.hpp"
+#include "StdFix.hpp"
 
 #include <any>
 #include <fstream>
@@ -133,7 +134,7 @@ inline FntInfo loadAndParseFnt(const std::string& fileName) {
 
     std::string buff;
 
-    while (std::getline(f, buff)) {
+    while (stc::StdFix::getline(f, buff)) {
         auto vars = parseLine(buff);
 
         if (buff.starts_with("info")) {

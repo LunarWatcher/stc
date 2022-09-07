@@ -1,0 +1,19 @@
+name: Test workflow
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+jobs:
+  tests:
+    # TODO: set up a test matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - name: Run tests
+        run: |
+          mkdir build && cd build
+          cmake ..
+          make -j 4
+          ./bin/tests

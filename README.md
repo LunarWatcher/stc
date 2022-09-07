@@ -13,6 +13,7 @@ Note: a few of the headers are inter-dependent
 | `stc/Optional.hpp` | 1.0.0 | stdlib compatibility | Wrapper around `std::optional` and `std::experimental::optional` | | 
 | `stc/StringUtil.hpp` | 1.0.0 | Utility library | Adds a few string operations that C++ does not (but should) have built into strings | |
 | `stc/FntParser.hpp` | 1.0.0 | Utility library | Adds support for parsing text-based .fnt files | `FS.hpp` |
+| `stc/StdFix.hpp` | 1.0.0 | stdlib fixes | Adds functions to deal with C++ being dumb | |
 
 # Usage
 
