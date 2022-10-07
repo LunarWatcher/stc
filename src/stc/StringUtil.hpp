@@ -18,7 +18,7 @@ namespace string {
  * Or at least the limit isn't obviously a part of the split() function, confusing me.
  * Nonetheless, this splits the string.
  */
-inline std::vector<std::string> split(const std::string& input, const char delimiter, long long limit = -1) {
+inline std::vector<std::string> split(const std::string& input, const char delimiter, int64_t limit = -1) {
     if (delimiter == 0) {
         std::vector<std::string> out;
         std::transform(input.begin(), input.end(), std::back_inserter(out), [](const char& chr) {
@@ -32,7 +32,7 @@ inline std::vector<std::string> split(const std::string& input, const char delim
     std::vector<std::string> out;
     std::stringstream stream(input);
     std::string line;
-    long long count = 0;
+    int64_t count = 0;
     while (getline(stream, line, delimiter)) {
         out.push_back(line);
         count++;
@@ -55,7 +55,7 @@ inline std::vector<std::string> split(const std::string& input, const char delim
 /**
  * Splits a string by a substring. Calls the method splitting by character if delimiter.size() <= 1.
  */
-inline std::vector<std::string> split(const std::string& input, const std::string& delimiter, long long limit = -1) {
+inline std::vector<std::string> split(const std::string& input, const std::string& delimiter, int64_t limit = -1) {
     if (delimiter.size() <= 1) {
         return split(input, 0, limit);
     } else if (limit == 0) {
@@ -65,7 +65,7 @@ inline std::vector<std::string> split(const std::string& input, const std::strin
     std::vector<std::string> out;
     size_t pos = 0, index = 0;
     std::string token;
-    long long count = 0;
+    int64_t count = 0;
     while ((pos = input.find(delimiter, index)) != std::string::npos) {
         token = input.substr(0, pos);
         index = pos + delimiter.size() - 1;
