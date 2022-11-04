@@ -1,5 +1,6 @@
 add_executable(tests
     src/StdFixTests.cpp
+    src/LockTests.cpp
 )
 Include(FetchContent)
 

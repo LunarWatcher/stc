@@ -14,6 +14,7 @@ Note: a few of the headers are inter-dependent
 | `stc/StringUtil.hpp` | 1.0.0 | Utility library | Adds a few string operations that C++ does not (but should) have built into strings | |
 | `stc/FntParser.hpp` | 1.1.0 | Utility library | Adds support for parsing text-based .fnt files | `FS.hpp`, `StdFix.hpp` |
 | `stc/StdFix.hpp` | 1.0.0 | stdlib fixes | Adds functions to deal with C++ being dumb | |
+| `stc/FileLock.hpp` | 1.0.0 | OS compatibility | Adds functions to deal with filelocks. Currently Linux-only, with the functions being empty (or always returning a positive result) on Windows. | |
 
 # Usage
 
