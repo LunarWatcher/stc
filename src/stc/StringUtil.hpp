@@ -45,6 +45,9 @@ inline std::vector<std::string> split(const std::string& input, const char delim
     std::string res = remainder.str();
     if (res != "") {
         out.push_back(res);
+    } else if (input.at(input.size() - 1) == delimiter) {
+        // Edge-case; delimiter last
+        out.push_back("");
     }
 
     return out;
@@ -54,7 +57,6 @@ inline std::vector<std::string> split(const std::string& input, const char delim
  * Splits a string by a substring. Calls the method splitting by character if delimiter.size() <= 1.
  */
 inline std::vector<std::string> split(const std::string& input, const std::string& delimiter, int64_t limit = -1) {
-
     if (delimiter.size() == 1) {
         return split(input, delimiter[0], limit);
     } else if (delimiter.size() == 0) {
@@ -68,8 +70,9 @@ inline std::vector<std::string> split(const std::string& input, const std::strin
     std::string token;
     int64_t count = 0;
     while ((pos = input.find(delimiter, index)) != std::string::npos) {
-        token = input.substr(0, pos);
-        index = pos + delimiter.size() - 1;
+        // pos - index, because this shit operates on length rather than indices.
+        token = input.substr(index, pos - index);
+        index = pos + delimiter.size();
         out.push_back(token);
         count++;
         if (count == limit) {
@@ -78,6 +81,9 @@ inline std::vector<std::string> split(const std::string& input, const std::strin
     }
     if (index < input.size()) {
         out.push_back(input.substr(index));
+    } else if (index == input.size()) {
+        // A delimiter was the last token
+        out.push_back("");
     }
     return out;
 
