@@ -40,13 +40,11 @@ inline std::vector<std::string> split(const std::string& input, const char delim
             break;
         }
     }
-    if (limit > 0) {
-        std::stringstream remainder;
-        remainder << stream.rdbuf();
-        std::string res = remainder.str();
-        if (res != "") {
-            out.push_back(res);
-        }
+    std::stringstream remainder;
+    remainder << stream.rdbuf();
+    std::string res = remainder.str();
+    if (res != "") {
+        out.push_back(res);
     }
 
     return out;
@@ -56,7 +54,10 @@ inline std::vector<std::string> split(const std::string& input, const char delim
  * Splits a string by a substring. Calls the method splitting by character if delimiter.size() <= 1.
  */
 inline std::vector<std::string> split(const std::string& input, const std::string& delimiter, int64_t limit = -1) {
-    if (delimiter.size() <= 1) {
+
+    if (delimiter.size() == 1) {
+        return split(input, delimiter[0], limit);
+    } else if (delimiter.size() == 0) {
         return split(input, 0, limit);
     } else if (limit == 0) {
         return {input};
