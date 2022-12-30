@@ -24,7 +24,7 @@ jobs:
           ./bin/tests
       - name: Run shitty OS tests
         if: matrix.os == 'windows-latest'
-        run:
+        run: |
           mkdir build && cd build
           cmake ..
           cmake --build .
