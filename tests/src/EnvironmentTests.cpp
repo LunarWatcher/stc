@@ -3,7 +3,7 @@
 
 TEST_CASE("Syscommand should deal with sleeping", "[Environment][syscommand]") {
     std::string a, b;
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 2000; ++i) {
         a += ('a' + (i % 26));
         b += ('A' + (i % 26));
     }
