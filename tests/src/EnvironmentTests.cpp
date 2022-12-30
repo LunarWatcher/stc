@@ -8,11 +8,9 @@ TEST_CASE("Syscommand should deal with sleeping", "[Environment][syscommand]") {
         b += ('A' + (i % 26));
     }
     auto res = stc::syscommand("echo " + a + " && sleep 2 && echo " + b);
-#ifndef _WIN32
+
     REQUIRE(res == a + "\n" + b + "\n");
-#else
-    REQUIRE(res == a + "\r\n" + b + "\r\n");
-#endif
+
 }
 
 TEST_CASE("Syscommand should handle return codes", "[Environment][syscommand]") {
