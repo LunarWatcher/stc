@@ -3,19 +3,24 @@
 
 #include "catch2/catch_test_macros.hpp"
 
+#ifndef _WIN32
+// Would be great to test this on Windows as well, but windows is so unreliable
+// that this test will not work.
+//
+// sleep isn't a thing, timeout is.
+//
+// Timeout prints a lot of unnecessary text, so it's dropped.
+//
+// Attempting to redirect it to nul errors out and immediately exits.
+//
+// Good fucking job, microsoft. Y'all suck at making software
 TEST_CASE("Syscommand should deal with sleeping", "[Environment][syscommand]") {
     std::string a, b;
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 2000; ++i) {
         a += ('a' + (i % 26));
         b += ('A' + (i % 26));
     }
-    auto res = stc::syscommand("echo " + a + "&& " 
-#ifndef _WIN32
-                               "sleep 2"
-#else
-                               "waitfor WindowsIsFuckingTrashAndNeedsToFuckingDisappear /t 2 2>nul"
-#endif
-                               " && echo " + b);
+    auto res = stc::syscommand("echo " + a + "&& sleep 2 && echo " + b);
     INFO(stc::string::getByteString(res));
     INFO(stc::string::getByteString(a));
     INFO(stc::string::getByteString(b));
@@ -23,6 +28,7 @@ TEST_CASE("Syscommand should deal with sleeping", "[Environment][syscommand]") {
     REQUIRE(res == a + "\n" + b + "\n");
 
 }
+#endif
 
 TEST_CASE("Syscommand should handle return codes", "[Environment][syscommand]") {
     int exitCode = 0;
