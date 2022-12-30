@@ -6,5 +6,6 @@
 #include <iostream>
 
 int main(int argc, const char* argv[], char** envp) {
+    stc::syscommand("timeout /T 2 /NOBREAK >nul")
     return Catch::Session().run(argc, argv);
 }
