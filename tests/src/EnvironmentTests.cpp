@@ -13,7 +13,7 @@ TEST_CASE("Syscommand should deal with sleeping", "[Environment][syscommand]") {
 #ifndef _WIN32
                                "sleep 2"
 #else
-                               "timeout 2 >nul"
+                               "waitfor WindowsIsFuckingTrashAndNeedsToFuckingDisappear /t 2 2>nul"
 #endif
                                " && echo " + b);
     INFO(stc::string::getByteString(res));
