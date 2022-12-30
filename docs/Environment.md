@@ -12,8 +12,10 @@ Converts path in the form of `~optionalUsername/blah` and converts it to a home 
 
 Returns the home directory for the current user. This is a potentially light-weight equivalent of `expandUserPath` if you're planning on using the home directory for several things, and you'd like to cache it.
 
-## `std::string syscommand(std::string command)`
+## `std::string syscommand(std::string command, int* codeOutput = nullptr)`
 
 Executes a system command, and returns the output.
 
 Note that this is a blocking function; DO NOT use if you need to stream the output of a given command.
+
+To get the exit code of the command as well, pass a pointer to an int in the second parameter.
