@@ -42,5 +42,5 @@ TEST_CASE("Ensure locking works", "[LockTests]") {
 
 }
 #else
-#warn "File lock support for Windows has not been added yet"
+#warning "File lock support for Windows has not been added yet"
 #endif
