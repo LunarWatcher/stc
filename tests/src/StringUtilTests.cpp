@@ -40,7 +40,7 @@ TEST_CASE("Ensure the special-case charification works", "[Feat][String]") {
 TEST_CASE("Ensure multibyte splits work", "[Feat][String]") {
     auto res = stc::string::split("A>=B>=C>=D", ">=");
     REQUIRE(res.size() == 4);
-    for (int i = 0; i < res.size(); ++i) {
+    for (size_t i = 0; i < res.size(); ++i) {
         REQUIRE(res.at(i) == std::string(1, 'A' + i));
     }
 

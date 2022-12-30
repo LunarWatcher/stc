@@ -24,7 +24,7 @@ inline std::vector<std::string> split(const std::string& input, const char delim
         std::transform(input.begin(), input.end(), std::back_inserter(out), [](const char& chr) {
             return std::string(1, chr);
         });
-        return std::move(out);
+        return out;
     } else if (limit == 0) {
         return {input};
     }
