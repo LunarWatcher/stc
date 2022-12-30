@@ -259,7 +259,8 @@ inline std::string syscommand(const std::string& command, int* codeOutput = null
         pclose(fd);
         throw;
     }
-    int exitCode = WEXITSTATUS(pclose(fd));
+    int r = pclose(fd);
+    int exitCode = WEXITSTATUS(r);
     if (codeOutput != nullptr) {
         *codeOutput = exitCode;
     }
