@@ -39,7 +39,7 @@ inline std::string getEnv(const char* name, const std::string& fail = "") {
         return fail;
     return std::string(output);
 #else
-#warning "Failed to find a secure getenv() for your OS - please open an issue at https://github.com/LunarWatcher/stc."
+#warning "Failed to find a secure getenv() for your OS - please open an issue at https://github.com/LunarWatcher/stc if you know of an equivalent."
     char* v = std::getenv(name);
     if (v == nullptr) return fail;
     // The string may need to be copied here instead, but iDunno
