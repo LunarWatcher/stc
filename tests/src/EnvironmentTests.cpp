@@ -11,7 +11,7 @@ TEST_CASE("Syscommand should deal with sleeping", "[Environment][syscommand]") {
 #ifndef _WIN32
                                "sleep 2"
 #else
-                               "@timeout 2"
+                               "timeout 2 >nul"
 #endif
                                " && echo " + b);
 
