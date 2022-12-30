@@ -6,9 +6,7 @@
 #include <vector>
 #include <iostream>
 
-namespace stc {
-
-namespace string {
+namespace stc::string {
 
 /**
  * Splits a string by a character.
@@ -89,6 +87,20 @@ inline std::vector<std::string> split(const std::string& input, const std::strin
 
 }
 
+inline std::vector<int> byteArrayOf(const std::string& input) {
+    std::vector<int> out;
+    for (auto& chr : input) {
+        out.push_back(chr);
+    }
+    return out;
+}
+
+inline std::string getByteString(const std::string& input) {
+    std::string output = "";
+    std::transform(input.cbegin(), input.cend(), std::back_inserter(output), [](const char c) {
+        return std::to_string(c) + " ";
+    });
+    return output;
 }
 
 }

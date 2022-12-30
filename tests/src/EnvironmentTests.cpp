@@ -1,9 +1,11 @@
 #include "stc/Environment.hpp"
+#include "stc/StringUtil.hpp"
+
 #include "catch2/catch_test_macros.hpp"
 
 TEST_CASE("Syscommand should deal with sleeping", "[Environment][syscommand]") {
     std::string a, b;
-    for (int i = 0; i < 2000; ++i) {
+    for (int i = 0; i < 2; ++i) {
         a += ('a' + (i % 26));
         b += ('A' + (i % 26));
     }
@@ -14,6 +16,9 @@ TEST_CASE("Syscommand should deal with sleeping", "[Environment][syscommand]") {
                                "timeout 2 >nul"
 #endif
                                " && echo " + b);
+    INFO(stc::string::getByteString(res));
+    INFO(stc::string::getByteString(a));
+    INFO(stc::string::getByteString(b));
 
     REQUIRE(res == a + "\n" + b + "\n");
 
