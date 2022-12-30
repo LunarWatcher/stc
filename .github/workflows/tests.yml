@@ -13,8 +13,7 @@ jobs:
     # TODO: set up a test matrix
     runs-on: ${{matrix.os}}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@main
       - name: Run tests
         if: matrix.os != 'windows-latest'
         run: |
@@ -28,7 +27,5 @@ jobs:
           mkdir build && cd build
           cmake ..
           cmake --build .
-          dir
-          dir bin
           .\bin\tests.exe
 
