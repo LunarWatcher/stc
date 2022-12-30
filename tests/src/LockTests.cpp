@@ -42,5 +42,7 @@ TEST_CASE("Ensure locking works", "[LockTests]") {
 
 }
 #else
-#warning "File lock support for Windows has not been added yet"
+// File lock support for Windows has not been added yet
+// And #warning doesn't exist because Windows fucking sucks, so no warning for you either
+// Fucking trash OS
 #endif
