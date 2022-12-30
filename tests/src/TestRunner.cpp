@@ -13,5 +13,6 @@ public:
 int main(int argc, const char* argv[], char** envp) {
     std::cout << "test: " << std::endl;
     system("timeout 2 >nul");
+    std::cout << "End test" << std::endl;
     return Catch::Session().run(argc, argv);
 }
