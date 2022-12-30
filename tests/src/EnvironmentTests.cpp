@@ -9,7 +9,7 @@ TEST_CASE("Syscommand should deal with sleeping", "[Environment][syscommand]") {
         a += ('a' + (i % 26));
         b += ('A' + (i % 26));
     }
-    auto res = stc::syscommand("echo " + a + " && " 
+    auto res = stc::syscommand("echo " + a + "&& " 
 #ifndef _WIN32
                                "sleep 2"
 #else
