@@ -97,9 +97,9 @@ inline std::vector<int> byteArrayOf(const std::string& input) {
 
 inline std::string getByteString(const std::string& input) {
     std::string output = "";
-    std::transform(input.cbegin(), input.cend(), std::back_inserter(output), [](const char c) {
-        return std::to_string(c) + " ";
-    });
+    for (const char c : input) {
+        output += std::to_string(c) + " ";
+    }
     return output;
 }
 
