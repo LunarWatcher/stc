@@ -3,6 +3,8 @@ add_executable(tests
     src/LockTests.cpp
     src/StringUtilTests.cpp
     src/EnvironmentTests.cpp
+
+    src/TestRunner.cpp
 )
 Include(FetchContent)
 
@@ -15,4 +17,4 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 target_include_directories(tests PUBLIC ../src/ ./src/)
-target_link_libraries(tests Catch2::Catch2WithMain)
+target_link_libraries(tests Catch2::Catch2)
