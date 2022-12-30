@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 
+#ifndef _WIN32
 TEST_CASE("Ensure locking works", "[LockTests]") {
     fs::remove("stc_test_lock");
 
@@ -40,3 +41,6 @@ TEST_CASE("Ensure locking works", "[LockTests]") {
     }
 
 }
+#else
+#warn "File lock support for Windows has not been added yet"
+#endif
