@@ -28,5 +28,7 @@ jobs:
           mkdir build && cd build
           cmake ..
           cmake --build .
+          dir
+          dir bin
           .\bin\tests.exe
 
