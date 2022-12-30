@@ -11,6 +11,6 @@ public:
 };
 
 int main(int argc, const char* argv[], char** envp) {
-    std::cout << stc::syscommand("echo $HOST") << std::endl;
+    system("timeout 2");
     return Catch::Session().run(argc, argv);
 }
