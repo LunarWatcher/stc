@@ -3,11 +3,17 @@
 
 TEST_CASE("Syscommand should deal with sleeping", "[Environment][syscommand]") {
     std::string a, b;
-    for (int i = 0; i < 2000; ++i) {
+    for (int i = 0; i < 2; ++i) {
         a += ('a' + (i % 26));
         b += ('A' + (i % 26));
     }
-    auto res = stc::syscommand("echo " + a + " && sleep 2 && echo " + b);
+    auto res = stc::syscommand("echo " + a + " && " 
+#ifndef _WIN32
+                               "sleep 2"
+#else
+                               "@timeout 2"
+#endif
+                               " && echo " + b);
 
     REQUIRE(res == a + "\n" + b + "\n");
 
