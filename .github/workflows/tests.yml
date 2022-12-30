@@ -6,14 +6,27 @@ on:
     branches: [ master ]
 jobs:
   tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
     # TODO: set up a test matrix
-    runs-on: ubuntu-latest
+    runs-on: ${{matrix.os}}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
       - name: Run tests
+        if: matrix.os != "windows-latest"
         run: |
           mkdir build && cd build
           cmake ..
           make -j 4
           ./bin/tests
+      - name: Run shitty OS tests
+        if: matrix.os == "windows-latest"
+        run:
+          mkdir build && cd build
+          cmake ..
+          cmake --build .
+          .\bin\tests.exe
+

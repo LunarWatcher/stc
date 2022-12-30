@@ -2,6 +2,7 @@ add_executable(tests
     src/StdFixTests.cpp
     src/LockTests.cpp
     src/StringUtilTests.cpp
+    src/EnvironmentTests.cpp
 )
 Include(FetchContent)
 

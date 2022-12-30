@@ -15,6 +15,7 @@
 #else
 #define popen _popen
 #define pclose _pclose
+#define WEXITSTATUS
 #endif
 
 namespace stc {
@@ -243,16 +244,27 @@ inline fs::path getHome() {
     return fs::path{homePath};
 }
 
-inline std::string syscommand(const std::string& command) {
+inline std::string syscommand(const std::string& command, int* codeOutput = nullptr) {
     std::array<char, 128> buffer;
     std::string res;
 
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
-    if (!pipe) throw std::runtime_error("Failed to run " + command);
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        res += buffer.data();
+    FILE* fd = popen(command.c_str(), "r");
+    if (!fd) throw std::runtime_error("Failed to run " + command);
+    size_t bytes = 0;
+    try {
+        while ((bytes = fread(buffer.data(), sizeof(buffer[0]), buffer.size(), fd)) != 0) {
+            res.insert(res.end(), buffer.begin(), buffer.begin() + bytes);
+        }
+    } catch (...) {
+        pclose(fd);
+        throw;
+    }
+    int exitCode = WEXITSTATUS(pclose(fd));
+    if (codeOutput != nullptr) {
+        *codeOutput = exitCode;
     }
     return res;
 }
+
 
 }
