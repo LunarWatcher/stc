@@ -41,6 +41,30 @@ TEST_CASE("Ensure locking works", "[LockTests]") {
     }
 
 }
+
+TEST_CASE("Ensure dynamic locking works", "[LockTests]") {
+    fs::remove("stc_test_lock");
+
+    stc::FileLock initLock("stc_test_lock");
+    REQUIRE(initLock.hasLock());
+
+    REQUIRE_THROWS([]() {
+        stc::FileLock controlLock("stc_test_lock");
+    }(), stc::FileLock::Errors::LOCK_ERROR);
+
+    int count = 0;
+    auto dynlock = stc::FileLock::dynamicAcquireLock("stc_test_lock", [&]() {
+        count += 1;
+        if (count == 10) {
+            initLock.unlock();
+        }
+        return true;
+    }, 0);
+    REQUIRE(count == 10);
+    REQUIRE(dynlock->hasLock());
+    REQUIRE_FALSE(initLock.hasLock());
+
+}
 #else
 // File lock support for Windows has not been added yet
 // And #warning doesn't exist because Windows fucking sucks, so no warning for you either

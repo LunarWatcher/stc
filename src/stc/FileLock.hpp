@@ -165,7 +165,9 @@ public:
                     return nullptr;
                 }
             }
-            std::this_thread::sleep_for(std::chrono::seconds(sleepSeconds));
+            if (sleepSeconds != 0) {
+                std::this_thread::sleep_for(std::chrono::seconds(sleepSeconds));
+            }
         }
         return nullptr;
     }
