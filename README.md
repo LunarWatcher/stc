@@ -20,3 +20,8 @@ Note: a few of the headers are inter-dependent
 # Usage
 
 All you have to do is set up `src/` as an include directory. Everything is header-only, and at the time of writing, requires no other setup.
+
+CMake users can instead `add_subdirectory()` and take advantage of the `stc` interface target:
+```
+target_link_libraries(your-program stc)
+```
