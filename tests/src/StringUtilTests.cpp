@@ -137,4 +137,13 @@ TEST_CASE("Ensure limited replacements work", "[Feat]") {
     std::string source = "lolololo";
     stc::string::replaceAll(source, "lo", "tro", 1);
     REQUIRE(source == "trolololo");
+    stc::string::replaceAll(source, "lo", "tro", 1);
+    REQUIRE(source == "trotrololo");
+}
+
+TEST_CASE("Verify removeDuplicateWhitespace", "[Feat]") {
+    std::string source = "Foxes     in      spaaaaace";
+    std::string out;
+    stc::string::removeDuplicateWhitespace(source, out);
+    REQUIRE(out == "Foxes in spaaaaace");
 }
