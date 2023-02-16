@@ -103,4 +103,17 @@ inline std::string getByteString(const std::string& input) {
     return output;
 }
 
+inline void replaceAll(std::string& input, const std::string& find, const std::string& replaceWith, size_t limit = 0) {
+    if (find.empty()) return;
+
+    size_t pos = 0;
+    size_t count = 0;
+    while ((pos = input.find(find, pos)) != std::string::npos) {
+        input.replace(pos, find.length(), replaceWith);
+        pos += replaceWith.length();
+
+        if (++count == limit) break;
+    }
+}
+
 }
