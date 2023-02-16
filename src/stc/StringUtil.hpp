@@ -25,6 +25,8 @@ inline std::vector<std::string> split(const std::string& input, const char delim
         return out;
     } else if (limit == 0) {
         return {input};
+    } else if (input.empty()) {
+        return {};
     }
 
     std::vector<std::string> out;
@@ -61,6 +63,8 @@ inline std::vector<std::string> split(const std::string& input, const std::strin
         return split(input, 0, limit);
     } else if (limit == 0) {
         return {input};
+    } else if (input.empty()) {
+        return {};
     }
 
     std::vector<std::string> out;
