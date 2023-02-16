@@ -116,4 +116,11 @@ inline void replaceAll(std::string& input, const std::string& find, const std::s
     }
 }
 
+inline void removeDuplicateWhitespace(const std::string& input, std::string& output) {
+    std::unique_copy(input.begin(), input.end(), std::back_inserter(output),
+                 [](char a, char b) {
+                    return std::isspace(a) && std::isspace(b);
+                 });
+}
+
 }
