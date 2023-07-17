@@ -23,7 +23,7 @@ private:
             mode |= ENABLE_ECHO_INPUT;
         }
 
-        SetConsoleMode(hStdin, mode );
+        SetConsoleMode(hStdin, mode);
 #else
         struct termios tty;
         tcgetattr(STDIN_FILENO, &tty);
@@ -40,7 +40,7 @@ private:
     }
 public:
     PasswordIO() {
-        set(true);
+        set(false);
     }
     ~PasswordIO() {
         release();
@@ -50,7 +50,7 @@ public:
         if (freed) return;
         freed = true;
 
-        set(false);
+        set(true);
     }
 };
 
