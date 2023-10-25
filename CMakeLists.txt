@@ -5,10 +5,6 @@ project(stc)
 add_library(stc INTERFACE)
 target_include_directories(stc INTERFACE src/)
 
-if (WIN32)
-    target_link_libraries(stc INTERFACE wsock32 ws2_32)
-endif()
-
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     message (STATUS "stc: Running standalone, enabling test targets.")
 
