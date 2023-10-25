@@ -25,6 +25,7 @@ jobs:
         run: |
           ./bin/tests
       - name: Set hostname (Windows)
+        if: matrix.os == 'windows-latest'
         shell: powershell
         run: |
           netdom renamecomputer "$env:COMPUTERNAME" /Newname "gh-actions-runner"
