@@ -25,6 +25,8 @@ inline std::vector<std::string> split(const std::string& input, const char delim
         return out;
     } else if (limit == 0) {
         return {input};
+    } else if (input.empty()) {
+        return {};
     }
 
     std::vector<std::string> out;
@@ -61,6 +63,8 @@ inline std::vector<std::string> split(const std::string& input, const std::strin
         return split(input, 0, limit);
     } else if (limit == 0) {
         return {input};
+    } else if (input.empty()) {
+        return {};
     }
 
     std::vector<std::string> out;
@@ -101,6 +105,26 @@ inline std::string getByteString(const std::string& input) {
         output += std::to_string(c) + " ";
     }
     return output;
+}
+
+inline void replaceAll(std::string& input, const std::string& find, const std::string& replaceWith, size_t limit = 0) {
+    if (find.empty()) return;
+
+    size_t pos = 0;
+    size_t count = 0;
+    while ((pos = input.find(find, pos)) != std::string::npos) {
+        input.replace(pos, find.length(), replaceWith);
+        pos += replaceWith.length();
+
+        if (++count == limit) break;
+    }
+}
+
+inline void removeDuplicateWhitespace(const std::string& input, std::string& output) {
+    std::unique_copy(input.begin(), input.end(), std::back_inserter(output),
+                 [](char a, char b) {
+                    return std::isspace(a) && std::isspace(b);
+                 });
 }
 
 }

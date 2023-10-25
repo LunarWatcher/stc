@@ -126,3 +126,24 @@ TEST_CASE("Make sure single-character splits don't default to nullptr", "[Regres
     REQUIRE(res.at(1) == "B");
     REQUIRE(res.at(2) == "C:D:E");
 }
+
+TEST_CASE("Make sure replacing works", "[Feat]") {
+    std::string source = "gonna give you up, gonna let you down";
+    stc::string::replaceAll(source, "gonna", "never gonna");
+    REQUIRE(source == "never gonna give you up, never gonna let you down");
+}
+
+TEST_CASE("Ensure limited replacements work", "[Feat]") {
+    std::string source = "lolololo";
+    stc::string::replaceAll(source, "lo", "tro", 1);
+    REQUIRE(source == "trolololo");
+    stc::string::replaceAll(source, "lo", "tro", 1);
+    REQUIRE(source == "trotrololo");
+}
+
+TEST_CASE("Verify removeDuplicateWhitespace", "[Feat]") {
+    std::string source = "Foxes     in      spaaaaace";
+    std::string out;
+    stc::string::removeDuplicateWhitespace(source, out);
+    REQUIRE(out == "Foxes in spaaaaace");
+}
