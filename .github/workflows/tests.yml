@@ -21,10 +21,12 @@ jobs:
           cmake --build .
       - name: Run tests (UNIX-like)
         if: matrix.os != 'windows-latest'
+        working-directory: build
         run: |
           ./bin/tests
       - name: Run tests (Windows)
         if: matrix.os == 'windows-latest'
+        working-directory: build
         shell: cmd
         run: |
           .\bin\tests.exe
