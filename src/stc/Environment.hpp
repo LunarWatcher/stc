@@ -13,6 +13,8 @@
 #include <sys/types.h>
 #include <pwd.h>
 #else
+#include <winsock.h>
+
 #define popen _popen
 #define pclose _pclose
 #define WEXITSTATUS
@@ -265,6 +267,19 @@ inline std::string syscommand(const std::string& command, int* codeOutput = null
         *codeOutput = exitCode;
     }
     return res;
+}
+
+inline std::optional<std::string> getHostname() {
+    // According to the linux manpage, and the Windows docs page, it looks like approximately 256 bytes is the max length across all platforms.
+    constexpr int size = 256 + 2 /* + 2 for padding, just in case :) */;
+    char hostname[size];
+    auto res = gethostname(hostname, size);
+    if (res != 0) {
+        return std::nullopt;
+    }
+
+    std::string str(hostname);
+    return str;
 }
 
 

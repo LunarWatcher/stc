@@ -40,3 +40,17 @@ TEST_CASE("Syscommand should handle return codes", "[Environment][syscommand]") 
     REQUIRE_NOTHROW(res = stc::syscommand("gjdjgsdjgkfdsjkglfdjkglsfdjklgøsjklgøsjklgødjklgøsfdjklgø", &exitCode));
     REQUIRE(exitCode != 0);
 }
+
+TEST_CASE("Verify hostname return value", "[Environment][getHostname]") {
+    auto control = stc::syscommand("hostname");
+    if (auto eol = control.find('\n'); eol >= 0) {
+        control.replace(eol, control.size() - eol, "");
+    }
+    
+
+    REQUIRE(control != "");
+    auto hostName = stc::getHostname();
+    REQUIRE(hostName.has_value());
+    REQUIRE(hostName->size() != 0);
+    REQUIRE(hostName == control);
+}
