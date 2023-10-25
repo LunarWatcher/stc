@@ -8,14 +8,20 @@ Returns an environment variable called `name` if one exists, or `fail` otherwise
 
 Converts path in the form of `~optionalUsername/blah` and converts it to a home path on an applicable OS. Note that `~optionalUsername` is invalid syntax on Windows, and it will silently fail with a runtime `std::cerr`. `~/blah` expansion works on Windows, Linux, and MacOS.
 
-## `fs::path getHome()`
+## `fs::path stc::getHome()`
 
 Returns the home directory for the current user. This is a potentially light-weight equivalent of `expandUserPath` if you're planning on using the home directory for several things, and you'd like to cache it.
 
-## `std::string syscommand(std::string command, int* codeOutput = nullptr)`
+## `std::string stc::syscommand(std::string command, int* codeOutput = nullptr)`
 
 Executes a system command, and returns the output.
 
 Note that this is a blocking function; DO NOT use if you need to stream the output of a given command.
 
 To get the exit code of the command as well, pass a pointer to an int in the second parameter.
+
+## `std::string stc::getHostname()`
+
+Minimal wrapper around `gethostname` with conversion from char arrays to C++ strings.
+
+This is primarily a convenience function. It doesn't need to do any OS compatibility checks, because `gethostname()` has a compatible function signature between Linux and Windows.
