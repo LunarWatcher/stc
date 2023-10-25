@@ -6,8 +6,7 @@ add_library(stc INTERFACE)
 target_include_directories(stc INTERFACE src/)
 
 if (WIN32)
-    find_library(WS2 NAMES Ws2_32 REQUIRED)
-    target_link_libraries(stc INTERFACE ${WS2})
+    target_link_libraries(stc INTERFACE wsock32 ws2_32)
 endif()
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
