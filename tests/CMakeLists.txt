@@ -16,5 +16,5 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2)
 
-target_include_directories(tests PUBLIC ../src/ ./src/)
-target_link_libraries(tests Catch2::Catch2)
+target_include_directories(tests PUBLIC ./src/)
+target_link_libraries(tests Catch2::Catch2 stc)

@@ -1,8 +1,17 @@
 cmake_minimum_required(VERSION 3.10)
 project(stc)
 
+
+add_library(stc INTERFACE)
+target_include_directories(stc INTERFACE src/)
+
+if (WIN32)
+    find_library(WS2 NAMES Ws2_32 REQUIRED)
+    target_link_libraries(stc INTERFACE ${WS2})
+endif()
+
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-    message (STATUS "stc: Running standalone.")
+    message (STATUS "stc: Running standalone, enabling test targets.")
 
     set(OUTPUT ${CMAKE_BINARY_DIR}/bin)
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT})
@@ -23,10 +32,4 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     endif()
 
     add_subdirectory(tests)
-
-else()
-    message (STATUS "stc: Submodule detected. Enabling interface target")
-
-    add_library(stc INTERFACE)
-    target_include_directories(stc INTERFACE src/)
 endif()
