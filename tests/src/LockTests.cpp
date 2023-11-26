@@ -6,20 +6,8 @@
 #include <iostream>
 #include <fstream>
 
-#ifndef _WIN32
 TEST_CASE("Ensure locking works", "[LockTests]") {
     fs::remove("stc_test_lock");
-
-    {
-        std::ofstream output("stc_test_lock");
-        output << "hi" << std::endl;
-        output.close();
-        std::ifstream input("stc_test_lock");
-        std::string content;
-        input >> content;
-        REQUIRE(content == "hi");
-        fs::remove("stc_test_lock");
-    }
 
     // Repeat the lock 10 times; this ensures it actually unlocks as it should in a normal scenario.
     for (int i = 0; i < 10; ++i) {
@@ -63,10 +51,15 @@ TEST_CASE("Ensure dynamic locking works", "[LockTests]") {
     REQUIRE(count == 10);
     REQUIRE(dynlock->hasLock());
     REQUIRE_FALSE(initLock.hasLock());
-
 }
-#else
-// File lock support for Windows has not been added yet
-// And #warning doesn't exist because Windows fucking sucks, so no warning for you either
-// Fucking trash OS
-#endif
+
+TEST_CASE("Validate deletion semantics", "[LockTests]") {
+    fs::remove("stc_test_lock");
+    SECTION("It should be removed automatically when a new lock is acquired") {
+        stc::FileLock initLock("stc_test_lock");
+        REQUIRE(initLock.hasLock());
+        REQUIRE(fs::exists("stc_test_lock"));
+        initLock.unlock();
+        REQUIRE_FALSE(fs::exists("stc_test_lock"));
+    }
+}
