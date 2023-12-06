@@ -13,7 +13,7 @@
 #include <sys/types.h>
 #include <pwd.h>
 #else
-#include <winsock.h>
+#include <Windows.h>
 
 #define popen _popen
 #define pclose _pclose
@@ -271,15 +271,36 @@ inline std::string syscommand(const std::string& command, int* codeOutput = null
 
 inline std::optional<std::string> getHostname() {
     // According to the linux manpage, and the Windows docs page, it looks like approximately 256 bytes is the max length across all platforms.
-    constexpr int size = 256 + 2 /* + 2 for padding, just in case :) */;
+#ifndef _WIN32
+    constexpr size_t size = 256 + 2 /* + 2 for padding, just in case :) */;
+#else
+    constexpr size_t size = MAX_COMPUTERNAME_LENGTH + 1;
+#endif
+
     char hostname[size];
-    auto res = gethostname(hostname, size);
+#ifndef _WIN32
+    int res = gethostname(hostname, size);
     if (res != 0) {
         return std::nullopt;
     }
 
     std::string str(hostname);
     return str;
+#else
+    DWORD _size = size;
+    bool res = GetComputerNameEx(
+        ComputerNamePhysicalDnsHostname, 
+        hostname,
+        &_size); 
+    if (res == false) {
+        return std::nullopt;
+    }
+    return std::string {
+        hostname,
+        (size_t) _size
+    };
+#endif
+
 }
 
 

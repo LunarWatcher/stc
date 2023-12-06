@@ -46,11 +46,14 @@ TEST_CASE("Verify hostname return value", "[Environment][getHostname]") {
     if (auto eol = control.find('\n'); eol >= 0) {
         control.replace(eol, control.size() - eol, "");
     }
-    
 
     REQUIRE(control != "");
+
     auto hostName = stc::getHostname();
+
     REQUIRE(hostName.has_value());
     REQUIRE(hostName->size() != 0);
+    REQUIRE(hostName->size() == control.size());
+    INFO(*hostName);
     REQUIRE(hostName == control);
 }

@@ -3,6 +3,7 @@
 #include <chrono>
 #include <functional>
 #include <memory>
+#include <iostream>
 #include <thread>
 #include <string>
 
@@ -12,6 +13,8 @@
 #include <unistd.h>
 #include <sys/file.h>
 #else
+#include <windows.h>
+#include <handleapi.h>
 #endif
 
 #include "FS.hpp"
@@ -19,8 +22,10 @@
 namespace stc {
 
 /**
- * Single-use file lock. Should NOT be used on the file meant to be protected, but a second
+ * Single-use file lock. It should NOT be used on the file meant to be protected, but a second
  * file exclusively meant to indicate whether some other file or resource is currently locked.
+ * This class deletes the lockfile after use as well, meaning if you use it on a file you want
+ * to use normally, it will be deleted.
  *
  * This won't actually prevent access to the relevant resources, but this strategy allows for
  * programs to respect each other.
@@ -41,6 +46,7 @@ private:
 #ifndef _WIN32
     int fd;
 #else
+    HANDLE fd;
 #endif
 
     const fs::path lockPath;
@@ -54,14 +60,14 @@ public:
     };
 
     /**
-     * Creates the file lock; currently does nothing on Windows,
-     * which just pretends to have the lock while that isn't a guarantee.
+     * This construtor creates the file lock.
      *
      * Throws a value from Errors that can be used for error checking.
      *
      * @param lockPath          The path to the lockfile
      * @param lockNonblocking   Whether or not to use LOCK_NB for Linux, or an equivalent for other
-     *                          operating systems if one exists. Default true
+     *                          operating systems if one exists. Default true.
+     *                          No effect on Windows due to implementation mechanics
      */
     FileLock(const fs::path& lockPath, bool lockNonblocking = true) : lockPath(lockPath) {
 #ifndef _WIN32
@@ -78,13 +84,34 @@ public:
             // While removing the file here would look relevant, it isn't.
             // If the file is locked, it obviously shouldn't be removed.
         }
-#else
-        locked = true;
-#endif
 
         if (!locked) {
             throw Errors::LOCK_ERROR;
         }
+#else
+        auto _cppStr = lockPath.string();
+        auto str = _cppStr.c_str();
+        fd = CreateFileA(
+            str,
+            GENERIC_WRITE,
+            0,
+            NULL,
+            CREATE_ALWAYS,
+            FILE_FLAG_DELETE_ON_CLOSE,
+            NULL
+        );
+
+        if (fd == INVALID_HANDLE_VALUE) {
+            DWORD err = GetLastError();
+            if (err == 32) {
+                throw Errors::LOCK_ERROR;
+            }
+            throw Errors::OPEN_ERROR;
+        }
+
+        locked = true;
+#endif
+
     }
 
     ~FileLock() {
@@ -119,9 +146,18 @@ public:
         if (fd >= 0) {
             flock(fd, LOCK_UN);
             close(fd);
+        }
+        // TODO: this results in a race condition. Fix
+        if (fs::exists(lockPath)) {
             fs::remove(lockPath);
         }
 #else
+        if (fd != INVALID_HANDLE_VALUE && CloseHandle(fd)) {
+            auto _cppStr = lockPath.string();
+            auto str = _cppStr.c_str();
+
+            CloseHandle(fd);
+        }
 #endif
     }
 
@@ -153,6 +189,12 @@ public:
      * @returns nullptr         if the lock wasn't acquired after control returns false, or if an OPEN_ERROR is met.
      * @returns lock            if the lock was acquired
      */
+    // Fuck you MSVC
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201907L) || __cplusplus >= 201907L)
+    [[nodiscard("Ignoring the return value of dynamicAcquireLock results in the immediate unlock of the returned lock")]]
+#else
+    [[nodiscard]]
+#endif
     static std::shared_ptr<FileLock> dynamicAcquireLock(const fs::path& path, std::function<bool()> control, unsigned int sleepSeconds = 1) {
         while (control()) {
             try {
