@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <pwd.h>
 #else
+#define NOMINMAX
 #include <Windows.h>
 
 #define popen _popen
