@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include <sys/file.h>
 #else
+
+#define NOMINMAX
 #include <windows.h>
 #include <handleapi.h>
 #endif
