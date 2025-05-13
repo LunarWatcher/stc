@@ -1,6 +1,6 @@
 # stc
 
-Header-only utilities for C++20\* and up. Name inspired by [stb](https://github.com/nothings/stb) (in part so I can have `stb`, `stc`, and `std` in some of my projects :) )
+Header-only utilities for C++17\* and up. Name inspired by [stb](https://github.com/nothings/stb) (in part so I can have `stb`, `stc`, and `std` in some of my projects :) )
 
 Note: a few of the headers are inter-dependent
 
