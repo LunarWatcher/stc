@@ -1,3 +1,4 @@
+add_executable(pseudoecho src/_meta/Echo.cpp)
 add_executable(tests
     src/StdFixTests.cpp
     src/LockTests.cpp
@@ -18,3 +19,4 @@ FetchContent_MakeAvailable(Catch2)
 
 target_include_directories(tests PUBLIC ./src/)
 target_link_libraries(tests Catch2::Catch2 stc)
+add_dependencies(tests pseudoecho)
