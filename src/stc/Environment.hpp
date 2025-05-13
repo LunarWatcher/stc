@@ -1,11 +1,11 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <cstdlib>
 #include <regex>
 #include <array>
 
-#include "FS.hpp"
 #include "Optional.hpp"
 
 #if !defined(_WIN32)
@@ -58,7 +58,7 @@ inline std::string getEnv(const char* name, const std::string& fail = "") {
  * There's not much of a difference in this area between for an instance Linux and Mac. Special
  * implementation requirements will be taken when we get to a point where it's needed)
  */
-inline fs::path expandUserPath(const std::string& inputPath) {
+inline std::filesystem::path expandUserPath(const std::string& inputPath) {
     // Convert all backslashes to forward slashes for processing (fuck you Windows)
     std::string rawPath = std::regex_replace(inputPath, std::regex("\\\\"), "/");
 
@@ -95,9 +95,6 @@ inline fs::path expandUserPath(const std::string& inputPath) {
         remainingPath = pathSplit.at(1);
     } else if (rawPath.find('/') != std::string::npos) {
         // The path contains a slash.
-        if (pathSplit.size() == 1) {
-            throw std::runtime_error("This shouldn't happen.");
-        }
 
         remainingPath = pathSplit.at(1);
     }
@@ -120,7 +117,7 @@ inline fs::path expandUserPath(const std::string& inputPath) {
 
             if (envHomePath.empty()) {
                 throw std::runtime_error("Unable to find %HOMEPATH%. Specify the path explicitly instead.");
-                return "";
+                //return "";
             }
             homePath = homeDrive + envHomePath;
         } else
@@ -135,7 +132,7 @@ inline fs::path expandUserPath(const std::string& inputPath) {
                      "use. "
                      "Replace your path with an absolute path instead. An implementation for this feature may be "
                      "available in the future.");
-        return "";
+        //return "";
     }
     // Force forward slashes
     homePath = std::regex_replace(homePath, std::regex("\\\\"), "/");
@@ -177,10 +174,10 @@ inline fs::path expandUserPath(const std::string& inputPath) {
     }
     homePath = passwdPtr->pw_dir;
 #endif
-    return fs::path{homePath} / remainingPath;
+    return std::filesystem::path{homePath} / remainingPath;
 }
 
-inline fs::path getHome() {
+inline std::filesystem::path getHome() {
 
     StdOptional<std::string> username;
     std::string remainingPath;
@@ -244,27 +241,35 @@ inline fs::path getHome() {
     }
     homePath = passwdPtr->pw_dir;
 #endif
-    return fs::path{homePath};
+    return std::filesystem::path{homePath};
 }
 
 inline std::string syscommand(const std::string& command, int* codeOutput = nullptr) {
     std::array<char, 128> buffer;
     std::string res;
 
-    FILE* fd = popen(command.c_str(), "r");
-    if (!fd) throw std::runtime_error("Failed to run " + command);
-    size_t bytes = 0;
-    try {
-        while ((bytes = fread(buffer.data(), sizeof(buffer[0]), buffer.size(), fd)) != 0) {
-            res.insert(res.end(), buffer.begin(), buffer.begin() + bytes);
+    std::unique_ptr<std::FILE, void(*)(FILE*)> fd {
+        popen(command.c_str(), "r"),
+        [](FILE* fd) {
+            std::ignore = pclose(fd);
         }
-    } catch (...) {
-        pclose(fd);
-        throw;
+    };
+    if (!fd) {
+        throw std::runtime_error("Failed to run " + command);
     }
-    int r = pclose(fd);
-    int exitCode = WEXITSTATUS(r);
+    size_t bytes = 0;
+    while ((bytes = fread(
+        buffer.data(),
+        sizeof(buffer[0]),
+        static_cast<int>(buffer.size()),
+        fd.get())
+    ) != 0) {
+        res.insert(res.end(), buffer.begin(), buffer.begin() + bytes);
+    }
+
     if (codeOutput != nullptr) {
+        int r = pclose(fd.release());
+        int exitCode = WEXITSTATUS(r);
         *codeOutput = exitCode;
     }
     return res;

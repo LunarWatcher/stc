@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(stc)
 
-
 add_library(stc INTERFACE)
 target_include_directories(stc INTERFACE src/)
 
@@ -27,4 +26,5 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     endif()
 
     add_subdirectory(tests)
+
 endif()

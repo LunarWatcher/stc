@@ -9,7 +9,6 @@ namespace StdFix {
 
 inline std::istream& getline(std::istream& is, std::string& str) {
     char ch;
-
     str.clear();
 
     while (!is.eof()) {
