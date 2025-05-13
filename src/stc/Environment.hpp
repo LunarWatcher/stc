@@ -375,8 +375,8 @@ inline std::string syscommand(std::vector<const char*> command, int* codeOutput 
         auto success =
             ReadFile(
                 stdoutRead,
-                output.data(),
-                output.size(),
+                buffer.data(),
+                buffer.size(),
                 &readBytes,
                 nullptr 
             );
@@ -396,7 +396,7 @@ inline std::string syscommand(std::vector<const char*> command, int* codeOutput 
     CloseHandle(stdoutRead);
 
     if (codeOutput != nullptr) {
-        GetExitCodeProcess(procInfo.hProcess, codeOutput)
+        GetExitCodeProcess(procInfo.hProcess, (LPDWORD) codeOutput)
     }
 #endif
 
