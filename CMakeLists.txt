@@ -19,7 +19,7 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
         set(CMAKE_BUILD_TYPE Release)
     endif()
 
-    set (CMAKE_CXX_STANDARD 17)
+    set (CMAKE_CXX_STANDARD 20)
 
     if (NOT WIN32)
         set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic -Wall -Wextra")

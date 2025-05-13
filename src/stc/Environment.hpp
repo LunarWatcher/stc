@@ -321,79 +321,83 @@ inline std::string syscommand(std::vector<const char*> command, int* codeOutput 
             int exitCode = WEXITSTATUS(status);
             *codeOutput = exitCode;
         }
-        
+
     }
 #else
-  using pipe_handle = void*;
+    using pipe_handle = void*;
 
-  auto stdoutRead = pipe_handle();
-  auto stdoutWrite = pipe_handle();
+    auto stdoutRead = pipe_handle();
+    auto stdoutWrite = pipe_handle();
 
-  auto secAttr = SECURITY_ATTRIBUTES {
-    .nLength = sizeof(SECURITY_ATTRIBUTES),
-    .lpSecurityDescriptor = nullptr,
-    .bInheritHandle = true
-  };
+    auto secAttr = SECURITY_ATTRIBUTES {
+        .nLength = sizeof(SECURITY_ATTRIBUTES),
+        .lpSecurityDescriptor = nullptr,
+        .bInheritHandle = true
+    };
 
-  CreatePipe(
-    &stdoutRead, 
-    &stdoutWrite, 
-    &secAttr,
-    0 
-  );
-  
-  SetHandleInformation(stdoutRead, HANDLE_FLAG_INHERIT, 0);
+    CreatePipe(
+        &stdoutRead, 
+        &stdoutWrite, 
+        &secAttr,
+        0 
+    );
 
-  auto startInfo = STARTUPINFO {
-    .cb = sizeof(STARTUPINFOA),
-    .dwFlags = STARTF_USESTDHANDLES,
-    .hStdOutput = stdoutWrite
-    .hStdError = stdoutWRite
-  };
+    SetHandleInformation(stdoutRead, HANDLE_FLAG_INHERIT, 0);
+
+    auto startInfo = STARTUPINFO {
+        .cb = sizeof(STARTUPINFOA),
+        .dwFlags = STARTF_USESTDHANDLES,
+        .hStdOutput = stdoutWrite,
+        .hStdError = stdoutWRite
+    };
 
 
-  auto procInfo = PROCESS_INFORMATION();
+    auto procInfo = PROCESS_INFORMATION();
 
-  CreateProcess(
-    command.at(0),
-    command.data(),
-    nullptr,
-    nullptr,
-    true,
-    0, 
-    nullptr,
-    nullptr,
-    &startInfo,
-    &procInfo
-  );
+    CreateProcess(
+        command.at(0),
+        command.data(),
+        nullptr,
+        nullptr,
+        true,
+        0, 
+        nullptr,
+        nullptr,
+        &startInfo,
+        &procInfo
+    );
 
-  CloseHandle(stdoutWrite);
+    CloseHandle(stdoutWrite);
 
-  while(true) {
-    auto readBytes = DWORD(0);
+    while(true) {
+        auto readBytes = DWORD(0);
 
-    auto success =
-      ReadFile(
-        stdoutRead,
-        output.data(),
-        output.size(),
-        &readBytes,
-        nullptr 
-      );
+        auto success =
+            ReadFile(
+                stdoutRead,
+                output.data(),
+                output.size(),
+                &readBytes,
+                nullptr 
+            );
 
-    // Is this correct?
-    if(!success) {
-        break;
+        // Is this correct?
+        if(!success) {
+            break;
+        }
+
+        if (readBytes > 0) {
+            res.insert(res.end(), buffer.begin(), buffer.begin() + readBytes);
+        }
+
     }
 
-    if (readBytes > 0) {
-        res.insert(res.end(), buffer.begin(), buffer.begin() + readBytes);
-    }
-    
-  }
+    WaitForSingleObject(procInfo.hProcess, INFINITY);
+    CloseHandle(stdoutRead);
 
-  WaitForSingleObject(procInfo.hProcess, INFINITY);
-  CloseHandle(stdoutRead);
+    if (codeOutput != nullptr) {
+        GetExitCodeProcess(procInfo.hProcess, codeOutput)
+    }
 #endif
 
     return res;
