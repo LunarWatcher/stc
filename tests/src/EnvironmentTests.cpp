@@ -59,6 +59,7 @@ TEST_CASE("Verify hostname return value", "[Environment][getHostname]") {
     REQUIRE(hostName == control);
 }
 
+#ifndef _WIN32
 TEST_CASE("Vectorised syscommand should deal with output", "[Environment][syscommand2]") {
     int statusCode;
     auto output = stc::syscommand(std::vector {
@@ -79,3 +80,4 @@ TEST_CASE("Vectorised syscommand should handle errors", "[Environment][syscomman
     }());
     REQUIRE(code != 0);
 }
+#endif

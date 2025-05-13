@@ -276,6 +276,7 @@ inline std::string syscommand(const std::string& command, int* codeOutput = null
     return res;
 }
 
+#ifndef _WIN32
 /**
  * Low-level command execution, bypassing shell evaluation. For shell evaluation, use syscommand(string, int*), or pass
  * a shell directly to this command.
@@ -286,7 +287,7 @@ inline std::string syscommand(std::vector<const char*> command, int* codeOutput 
     std::string res;
 
 
-#ifndef _WIN32
+//#ifndef _WIN32
     int fd[2];
     pipe(fd);
 
@@ -323,85 +324,86 @@ inline std::string syscommand(std::vector<const char*> command, int* codeOutput 
         }
 
     }
-#else
-    using pipe_handle = void*;
+//#else
+    //using pipe_handle = void*;
 
-    auto stdoutRead = pipe_handle();
-    auto stdoutWrite = pipe_handle();
+    //auto stdoutRead = pipe_handle();
+    //auto stdoutWrite = pipe_handle();
 
-    auto secAttr = SECURITY_ATTRIBUTES {
-        .nLength = sizeof(SECURITY_ATTRIBUTES),
-        .lpSecurityDescriptor = nullptr,
-        .bInheritHandle = true
-    };
+    //auto secAttr = SECURITY_ATTRIBUTES {
+        //.nLength = sizeof(SECURITY_ATTRIBUTES),
+        //.lpSecurityDescriptor = nullptr,
+        //.bInheritHandle = true
+    //};
 
-    CreatePipe(
-        &stdoutRead, 
-        &stdoutWrite, 
-        &secAttr,
-        0 
-    );
+    //CreatePipe(
+        //&stdoutRead, 
+        //&stdoutWrite, 
+        //&secAttr,
+        //0 
+    //);
 
-    SetHandleInformation(stdoutRead, HANDLE_FLAG_INHERIT, 0);
+    //SetHandleInformation(stdoutRead, HANDLE_FLAG_INHERIT, 0);
 
-    auto startInfo = STARTUPINFO {
-        .cb = sizeof(STARTUPINFOA),
-        .dwFlags = STARTF_USESTDHANDLES,
-        .hStdOutput = stdoutWrite,
-        .hStdError = stdoutWRite
-    };
+    //auto startInfo = STARTUPINFO {
+        //.cb = sizeof(STARTUPINFOA),
+        //.dwFlags = STARTF_USESTDHANDLES,
+        //.hStdOutput = stdoutWrite,
+        //.hStdError = stdoutWRite
+    //};
 
 
-    auto procInfo = PROCESS_INFORMATION();
+    //auto procInfo = PROCESS_INFORMATION();
 
-    CreateProcess(
-        command.at(0),
-        command.data(),
-        nullptr,
-        nullptr,
-        true,
-        0, 
-        nullptr,
-        nullptr,
-        &startInfo,
-        &procInfo
-    );
+    //CreateProcess(
+        //command.at(0),
+        //nullptr,
+        //nullptr,
+        //nullptr,
+        //true,
+        //0, 
+        //nullptr,
+        //nullptr,
+        //&startInfo,
+        //&procInfo
+    //);
 
-    CloseHandle(stdoutWrite);
+    //CloseHandle(stdoutWrite);
 
-    while(true) {
-        auto readBytes = DWORD(0);
+    //while(true) {
+        //auto readBytes = DWORD(0);
 
-        auto success =
-            ReadFile(
-                stdoutRead,
-                buffer.data(),
-                buffer.size(),
-                &readBytes,
-                nullptr 
-            );
+        //auto success =
+            //ReadFile(
+                //stdoutRead,
+                //buffer.data(),
+                //buffer.size(),
+                //&readBytes,
+                //nullptr 
+            //);
 
-        // Is this correct?
-        if(!success) {
-            break;
-        }
+        //// Is this correct?
+        //if(!success) {
+            //break;
+        //}
 
-        if (readBytes > 0) {
-            res.insert(res.end(), buffer.begin(), buffer.begin() + readBytes);
-        }
+        //if (readBytes > 0) {
+            //res.insert(res.end(), buffer.begin(), buffer.begin() + readBytes);
+        //}
 
-    }
+    //}
 
-    WaitForSingleObject(procInfo.hProcess, INFINITY);
-    CloseHandle(stdoutRead);
+    //WaitForSingleObject(procInfo.hProcess, INFINITY);
+    //CloseHandle(stdoutRead);
 
-    if (codeOutput != nullptr) {
-        GetExitCodeProcess(procInfo.hProcess, (LPDWORD) codeOutput)
-    }
-#endif
+    //if (codeOutput != nullptr) {
+        //GetExitCodeProcess(procInfo.hProcess, (LPDWORD) codeOutput)
+    //}
+//#endif
 
     return res;
 }
+#endif
 
 inline std::optional<std::string> getHostname() {
     // According to the linux manpage, and the Windows docs page, it looks like approximately 256 bytes is the max length across all platforms.
