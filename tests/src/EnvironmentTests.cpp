@@ -1,3 +1,4 @@
+#include "_meta/Constants.hpp"
 #include "stc/Environment.hpp"
 #include "stc/StringUtil.hpp"
 
@@ -57,3 +58,26 @@ TEST_CASE("Verify hostname return value", "[Environment][getHostname]") {
     INFO(*hostName);
     REQUIRE(hostName == control);
 }
+
+#ifndef _WIN32
+TEST_CASE("Vectorised syscommand should deal with output", "[Environment][syscommand2]") {
+    int statusCode;
+    auto output = stc::syscommand(std::vector {
+        ECHO_CMD,
+        "hello"
+    }, &statusCode);
+
+    REQUIRE(statusCode == 0);
+    REQUIRE(output == ("Argument: " ECHO_CMD "\nArgument: hello\n"));
+}
+
+TEST_CASE("Vectorised syscommand should handle errors", "[Environment][syscommand2]") {
+    int code;
+    REQUIRE_NOTHROW([&]() {
+        stc::syscommand(std::vector {
+            "fhdjohgjkfdshgjfkdslhgjfkdlshjgkfldshjkgfdsjlhkgfd"
+        }, &code);
+    }());
+    REQUIRE(code != 0);
+}
+#endif

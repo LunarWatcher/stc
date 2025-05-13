@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <sys/wait.h>
 #else
 #define NOMINMAX
 #include <Windows.h>
@@ -263,7 +264,7 @@ inline std::string syscommand(const std::string& command, int* codeOutput = null
         sizeof(buffer[0]),
         static_cast<int>(buffer.size()),
         fd.get())
-    ) != 0) {
+    ) > 0) {
         res.insert(res.end(), buffer.begin(), buffer.begin() + bytes);
     }
 
@@ -274,6 +275,135 @@ inline std::string syscommand(const std::string& command, int* codeOutput = null
     }
     return res;
 }
+
+#ifndef _WIN32
+/**
+ * Low-level command execution, bypassing shell evaluation. For shell evaluation, use syscommand(string, int*), or pass
+ * a shell directly to this command.
+ */
+inline std::string syscommand(std::vector<const char*> command, int* codeOutput = nullptr) {
+    command.push_back(nullptr);
+    std::array<char, 256> buffer;
+    std::string res;
+
+
+//#ifndef _WIN32
+    int fd[2];
+    pipe(fd);
+
+    auto pid = fork();
+
+    if (pid < 0) {
+        throw std::runtime_error("Fork error");
+    } else if (pid == 0) {
+        // Child process
+
+        dup2(fd[1], STDOUT_FILENO);
+        dup2(fd[1], STDERR_FILENO);
+        close(fd[0]);
+        close(fd[1]);
+
+        execv(command.at(0), (char**) command.data());
+        exit(1);
+    } else {
+        close(fd[1]);
+        size_t bytes = 0;
+        while ((bytes = read(
+            fd[0],
+            buffer.data(), buffer.size()
+        )) > 0) {
+            res.insert(res.end(), buffer.begin(), buffer.begin() + bytes);
+        }
+
+        int status;
+        waitpid(pid, &status, 0);
+
+        if (codeOutput != nullptr) {
+            int exitCode = WEXITSTATUS(status);
+            *codeOutput = exitCode;
+        }
+
+    }
+//#else
+    //using pipe_handle = void*;
+
+    //auto stdoutRead = pipe_handle();
+    //auto stdoutWrite = pipe_handle();
+
+    //auto secAttr = SECURITY_ATTRIBUTES {
+        //.nLength = sizeof(SECURITY_ATTRIBUTES),
+        //.lpSecurityDescriptor = nullptr,
+        //.bInheritHandle = true
+    //};
+
+    //CreatePipe(
+        //&stdoutRead, 
+        //&stdoutWrite, 
+        //&secAttr,
+        //0 
+    //);
+
+    //SetHandleInformation(stdoutRead, HANDLE_FLAG_INHERIT, 0);
+
+    //auto startInfo = STARTUPINFO {
+        //.cb = sizeof(STARTUPINFOA),
+        //.dwFlags = STARTF_USESTDHANDLES,
+        //.hStdOutput = stdoutWrite,
+        //.hStdError = stdoutWRite
+    //};
+
+
+    //auto procInfo = PROCESS_INFORMATION();
+
+    //CreateProcess(
+        //command.at(0),
+        //nullptr,
+        //nullptr,
+        //nullptr,
+        //true,
+        //0, 
+        //nullptr,
+        //nullptr,
+        //&startInfo,
+        //&procInfo
+    //);
+
+    //CloseHandle(stdoutWrite);
+
+    //while(true) {
+        //auto readBytes = DWORD(0);
+
+        //auto success =
+            //ReadFile(
+                //stdoutRead,
+                //buffer.data(),
+                //buffer.size(),
+                //&readBytes,
+                //nullptr 
+            //);
+
+        //// Is this correct?
+        //if(!success) {
+            //break;
+        //}
+
+        //if (readBytes > 0) {
+            //res.insert(res.end(), buffer.begin(), buffer.begin() + readBytes);
+        //}
+
+    //}
+
+    //WaitForSingleObject(procInfo.hProcess, INFINITY);
+    //CloseHandle(stdoutRead);
+
+    //if (codeOutput != nullptr) {
+        //GetExitCodeProcess(procInfo.hProcess, (LPDWORD) codeOutput)
+    //}
+//#endif
+
+    return res;
+}
+#endif
 
 inline std::optional<std::string> getHostname() {
     // According to the linux manpage, and the Windows docs page, it looks like approximately 256 bytes is the max length across all platforms.
