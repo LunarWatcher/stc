@@ -69,3 +69,13 @@ TEST_CASE("Vectorised syscommand should deal with output", "[Environment][syscom
     REQUIRE(statusCode == 0);
     REQUIRE(output == ("Argument: " ECHO_CMD "\nArgument: hello\n"));
 }
+
+TEST_CASE("Vectorised syscommand should handle errors", "[Environment][syscommand2]") {
+    int code;
+    REQUIRE_NOTHROW([&]() {
+        stc::syscommand(std::vector {
+            "fhdjohgjkfdshgjfkdslhgjfkdlshjgkfldshjkgfdsjlhkgfd"
+        }, &code);
+    }());
+    REQUIRE(code != 0);
+}

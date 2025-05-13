@@ -20,6 +20,12 @@ Note that this is a blocking function; DO NOT use if you need to stream the outp
 
 To get the exit code of the command as well, pass a pointer to an int in the second parameter.
 
+## `std::string stc::syscommand(std::vector<const char*> command, int* codeOutput = nullptr)`
+
+Similar to the string version of the command, but uses execv (UNIX) or CreateProcess (Windows). This allows a vectorised form of the exec functions to be used, which makes it easier to avoid the cursed shell escape functions required to make `std::syscommand(std::string, int*)` safe. 
+
+However, unlike the string form of this function, a shell is not invoked at all. Finding the path to executables is left to the invoker.
+
 ## `std::string stc::getHostname()`
 
 Minimal wrapper around `gethostname` with conversion from char arrays to C++ strings.
