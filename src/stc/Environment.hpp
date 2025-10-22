@@ -403,6 +403,31 @@ inline std::string syscommand(std::vector<const char*> command, int* codeOutput 
 
     return res;
 }
+
+/**
+ * (Theoretically) safe equivalent of std::system
+ */
+inline void syscommandNoCapture(std::vector<const char*> command, int* codeOutput = nullptr) {
+    command.push_back(nullptr);
+
+    auto pid = fork();
+
+    if (pid < 0) {
+        throw std::runtime_error("Fork error");
+    } else if (pid == 0) {
+        execv(command.at(0), (char**) command.data());
+        exit(1);
+    } else {
+        int status;
+        waitpid(pid, &status, 0);
+
+        if (codeOutput != nullptr) {
+            int exitCode = WEXITSTATUS(status);
+            *codeOutput = exitCode;
+        }
+
+    }
+}
 #endif
 
 inline std::optional<std::string> getHostname() {
