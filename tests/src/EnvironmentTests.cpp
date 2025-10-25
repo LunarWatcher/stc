@@ -59,6 +59,19 @@ TEST_CASE("Verify hostname return value", "[Environment][getHostname]") {
     REQUIRE(hostName == control);
 }
 
+TEST_CASE("Verify that streams are correctly identified") {
+    SECTION("stdout/stderr") {
+        REQUIRE(stc::getOutputStreamType(std::cout) == stc::StreamType::STDOUT);
+        REQUIRE(stc::getOutputStreamType(std::cerr) == stc::StreamType::STDERR);
+        REQUIRE(stc::getOutputStreamType(std::wcout) == stc::StreamType::STDOUT);
+        REQUIRE(stc::getOutputStreamType(std::wcerr) == stc::StreamType::STDERR);
+    }
+    SECTION("Other streams") {
+        std::stringstream ss;
+        REQUIRE(stc::getOutputStreamType(ss) == stc::StreamType::OTHER);
+    }
+}
+
 #ifndef _WIN32
 TEST_CASE("Vectorised syscommand should deal with output", "[Environment][syscommand2]") {
     int statusCode;

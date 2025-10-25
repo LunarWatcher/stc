@@ -1,3 +1,4 @@
+/** \file */
 #pragma once
 
 #include <istream>
@@ -7,6 +8,14 @@ namespace stc {
 
 namespace StdFix {
 
+/**
+ * Implementation of std::getline that handles \r, \n, and \r\n. 
+ *
+ * This lets you consume arbitrary files of unknown line endings without breaking hard. 
+ *
+ * \param is An input stream to get the line from 
+ * \param[out] str The string to put the line in.
+ */
 inline std::istream& getline(std::istream& is, std::string& str) {
     char ch;
     str.clear();

@@ -1,12 +1,14 @@
+/** \file */
 #pragma once
 
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <cstdlib>
 #include <regex>
 #include <array>
-
-#include "Optional.hpp"
+#include <cstdio>
+#include <iostream>
 
 #if !defined(_WIN32)
 #include <unistd.h>
@@ -69,7 +71,7 @@ inline std::filesystem::path expandUserPath(const std::string& inputPath) {
     if (rawPath.at(0) != '~')
         return rawPath;
 
-    StdOptional<std::string> username;
+    std::optional<std::string> username;
     std::string remainingPath;
 
     // The next part of the code is used to parse off the username,
@@ -180,7 +182,7 @@ inline std::filesystem::path expandUserPath(const std::string& inputPath) {
 
 inline std::filesystem::path getHome() {
 
-    StdOptional<std::string> username;
+    std::optional<std::string> username;
     std::string remainingPath;
 
     std::string homePath = "";
@@ -464,5 +466,51 @@ inline std::optional<std::string> getHostname() {
 
 }
 
+enum class StreamType {
+    STDOUT,
+    STDERR,
+    OTHER
+};  
+
+/**
+ * Utility wrapper around isatty (UNIX)/_isatty (Windows).
+ */
+inline bool isStreamTTY(StreamType type = StreamType::STDOUT) {
+    if (type == StreamType::OTHER) {
+        return false;
+    }
+    auto streamDescriptor = type == StreamType::STDOUT ? stdout : stderr;
+
+#ifdef _WIN32
+    return _isatty(_fileno(streamDescriptor));
+#else
+    return isatty(fileno(streamDescriptor));
+#endif
+}
+
+template <typename CharT>
+static constexpr StreamType getOutputStreamType(std::basic_ostream<CharT>& ss) {
+    if constexpr(std::is_same_v<CharT, char>) {
+        if (&ss == &std::cout) {
+            return StreamType::STDOUT;
+        } else if (&ss == &std::cerr) {
+            return StreamType::STDERR;
+        } 
+    } else if constexpr (std::is_same_v<CharT, wchar_t>){
+        if (&ss == &std::wcout) {
+            return StreamType::STDOUT;
+        } else if (&ss == &std::wcerr) {
+            return StreamType::STDERR;
+        } 
+    }
+    return StreamType::OTHER;
+}
+
+template <typename CharT>
+inline bool isCppStreamTTY(std::basic_ostream<CharT>& ss) {
+    return isStreamTTY(
+        getOutputStreamType(ss)
+    );
+}
 
 }

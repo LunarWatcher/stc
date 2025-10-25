@@ -1,9 +1,10 @@
+/** \file */
 #pragma once
 
-#include "FS.hpp"
 #include "StdFix.hpp"
 
 #include <any>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -119,12 +120,12 @@ inline std::map<std::string, std::any> parseLine(const std::string& line) {
 }
 
 inline FntInfo loadAndParseFnt(const std::string& fileName) {
-    if (!fs::exists(fileName)) {
+    if (!std::filesystem::exists(fileName)) {
         throw std::runtime_error("File doesn't exist");
     }
 
-    fs::path p(fileName);
-    std::ifstream f(p);
+    std::filesystem::path p(fileName);
+    std::ifstream f{p};
 
     if (!f.is_open()) {
         throw std::runtime_error("File not found");

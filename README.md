@@ -1,26 +1,28 @@
 # stc
 
-Header-only utilities for C++17\* and up. Name inspired by [stb](https://github.com/nothings/stb) (in part so I can have `stb`, `stc`, and `std` in some of my projects :) )
+Header-only utilities for C++20\* and up. Name inspired by [stb](https://github.com/nothings/stb) (in part so I can have `stb`, `stc`, and `std` in some of my projects :) )
+
 
 Note: a few of the headers are inter-dependent
 
-<sub>\*: Possibly subject to change in the future</sub>
+<sub>\*: Subject to change in the future</sub>
 
 | Library | Version | Category | Description | Dependencies (not including stdlib includes) |
 | --- | --- | --- | --- | --- |
 | `stc/Environment.hpp` | 1.2.0  | OS compatibility | Filesystem and other environmental utils for OS-specific operations | `Optional.hpp` |
-| `stc/FS.hpp` | 1.0.0 | stdlib compatibility | Wrapper to deal with `experimental/filesystem` and `<filesystem>` | |
-| `stc/Fmt.hpp` [Deprecated] | 1.0.0 | stdlib compatibility | Wrapper around `fmt`/`<format>` | |
-| `stc/Optional.hpp` | 1.0.0 | stdlib compatibility | Wrapper around `std::optional` and `std::experimental::optional` | | 
 | `stc/StringUtil.hpp` | 1.2.0 | Utility library | Adds a few string operations that C++ does not (but should) have built into strings | |
 | `stc/FntParser.hpp` | 1.1.0 | Utility library | Adds support for parsing text-based .fnt files | `FS.hpp`, `StdFix.hpp` |
 | `stc/StdFix.hpp` | 1.0.0 | stdlib fixes | Adds functions to deal with C++ being dumb | |
 | `stc/FileLock.hpp` | 2.0.0 | OS compatibility | Adds functions to deal with file locks. Uses flock on Linux, and exclusive file access on Windows. | |
 | `stc/IO.hpp` | 1.0.0 | OS compatibility | Deals with cross-platform IO | |
+| `stc/Colour.hpp` | - | Utility library | ANSI colour utility library for C++ streams | |
 
 For more details about the different files, see the `docs` folder.
 
 ## Usage
+
+> [!warning]
+> Upcoming versions of stc will not be header-only. Some of these are very low-level dependencies that include `<Windows.h>`, which can fuck over builds. Separating implementations into source files is the easiest way to avoid this.
 
 All you have to do is set up `src/` as an include directory. Everything is header-only, and at the time of writing, requires no other setup.
 
@@ -28,3 +30,22 @@ CMake users can instead `add_subdirectory()` and take advantage of the `stc` int
 ```
 target_link_libraries(your-program stc)
 ```
+
+FetchContent also works:
+
+```
+include(FetchContent)
+FetchContent_Declare(stc
+    GIT_REPOSITORY https://github.com/LunarWatcher/stc
+    # Optional: pin stc version
+    # GIT_TAG <hash>
+)
+FetchContent_MakeAvailable(stc)
+
+# Same system as subdirectory
+target_link_libraries(your-program stc)
+```
+
+## C++ compatibility
+
+The current version of C++ targeted is C++20. This is not a new change at the time of this commit, as a dumb mistake resulted in a C++20 function being part of the library and not being caught, because testing hard.

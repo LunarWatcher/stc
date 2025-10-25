@@ -1,9 +1,16 @@
 add_executable(pseudoecho src/_meta/Echo.cpp)
 add_executable(tests
-    src/StdFixTests.cpp
-    src/LockTests.cpp
-    src/StringUtilTests.cpp
+    src/ColourTests.cpp
     src/EnvironmentTests.cpp
+    src/LockTests.cpp
+    src/StdFixTests.cpp
+    src/StringUtilTests.cpp
+
+    # This test does not contain any tests, but is a test through just existing.
+    # It includes everything, which forces everything to be evaluated, which means 
+    # I coudl've detected .starts_with() being used when that's a C++20 function
+    # being used in a C++17 library :facepaw:
+    src/compiling/EverythingCompilesTest.cpp
 
     src/TestRunner.cpp
 )

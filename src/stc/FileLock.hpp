@@ -1,11 +1,11 @@
+/** \file */
 #pragma once
 
 #include <chrono>
 #include <functional>
 #include <memory>
-#include <iostream>
 #include <thread>
-#include <string>
+#include <filesystem>
 
 #ifndef _WIN32
 #include <fcntl.h>
@@ -18,8 +18,6 @@
 #include <windows.h>
 #include <handleapi.h>
 #endif
-
-#include "FS.hpp"
 
 namespace stc {
 
@@ -51,7 +49,7 @@ private:
     HANDLE fd;
 #endif
 
-    const fs::path lockPath;
+    const std::filesystem::path lockPath;
 
     bool locked = false;
 
@@ -71,7 +69,7 @@ public:
      *                          operating systems if one exists. Default true.
      *                          No effect on Windows due to implementation mechanics
      */
-    FileLock(const fs::path& lockPath, bool lockNonblocking = true) : lockPath(lockPath) {
+    FileLock(const std::filesystem::path& lockPath, bool lockNonblocking = true) : lockPath(lockPath) {
 #ifndef _WIN32
         fd = open(lockPath.c_str(), O_RDWR | O_CREAT, 0666);
         if (fd < 0) {
@@ -150,8 +148,8 @@ public:
             close(fd);
         }
         // TODO: this results in a race condition. Fix
-        if (fs::exists(lockPath)) {
-            fs::remove(lockPath);
+        if (std::filesystem::exists(lockPath)) {
+            std::filesystem::remove(lockPath);
         }
 #else
         if (fd != INVALID_HANDLE_VALUE && CloseHandle(fd)) {
@@ -179,17 +177,17 @@ public:
      * lock or not as well. For instance, if it's guaranteed that certain lock applications won't
      * exceed a certain amount of time locked.
      *
-     * @param path              The path to the lockfile
-     * @param control           The control function; decides whether or not to continue,
+     * \param path              The path to the lockfile
+     * \param control           The control function; decides whether or not to continue,
      *                          and it's highly recommended it's used to update the user interface.
-     * @param sleepSeconds      How long to sleep between attempts; the default is one second.
+     * \param sleepSeconds      How long to sleep between attempts; the default is one second.
      *                          Note that due to fundamental inaccuracies in computers, any time
      *                          inserted here isn't guaranteed to be accurate down to the max
      *                          double resolution. Control invokations are not good
      *                          for an exact indication of elapsed time.
      *
-     * @returns nullptr         if the lock wasn't acquired after control returns false, or if an OPEN_ERROR is met.
-     * @returns lock            if the lock was acquired
+     * \returns nullptr         if the lock wasn't acquired after control returns false, or if an OPEN_ERROR is met.
+     * \returns lock            if the lock was acquired
      */
     // Fuck you MSVC
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201907L) || __cplusplus >= 201907L)
@@ -197,7 +195,7 @@ public:
 #else
     [[nodiscard]]
 #endif
-    static std::shared_ptr<FileLock> dynamicAcquireLock(const fs::path& path, std::function<bool()> control, unsigned int sleepSeconds = 1) {
+    static std::shared_ptr<FileLock> dynamicAcquireLock(const std::filesystem::path& path, std::function<bool()> control, unsigned int sleepSeconds = 1) {
         while (control()) {
             try {
                 std::shared_ptr<FileLock> lock = std::make_shared<FileLock>(path, true);
