@@ -18,6 +18,7 @@
 #else
 #define NOMINMAX
 #include <Windows.h>
+#include <io.h>
 
 #define popen _popen
 #define pclose _pclose
