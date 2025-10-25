@@ -69,7 +69,8 @@ inline std::vector<std::string> split(const std::string& input, const std::strin
     }
 
     std::vector<std::string> out;
-    size_t pos = 0, index = 0;
+    size_t pos = 0;
+    size_t index = 0;
     std::string token;
     int64_t count = 0;
     while ((pos = input.find(delimiter, index)) != std::string::npos) {
@@ -101,7 +102,7 @@ inline std::vector<int> byteArrayOf(const std::string& input) {
 }
 
 inline std::string getByteString(const std::string& input) {
-    std::string output = "";
+    std::string output;
     for (const char c : input) {
         output += std::to_string(c) + " ";
     }
@@ -109,7 +110,9 @@ inline std::string getByteString(const std::string& input) {
 }
 
 inline void replaceAll(std::string& input, const std::string& find, const std::string& replaceWith, size_t limit = 0) {
-    if (find.empty()) return;
+    if (find.empty()) {
+        return;
+    }
 
     size_t pos = 0;
     size_t count = 0;
@@ -117,7 +120,9 @@ inline void replaceAll(std::string& input, const std::string& find, const std::s
         input.replace(pos, find.length(), replaceWith);
         pos += replaceWith.length();
 
-        if (++count == limit) break;
+        if (++count == limit) {
+            break;
+        }
     }
 }
 
@@ -125,7 +130,7 @@ inline void removeDuplicateWhitespace(const std::string& input, std::string& out
     std::unique_copy(
         input.begin(), input.end(), std::back_inserter(output),
         [](char a, char b) {
-            return std::isspace(a) && std::isspace(b);
+            return std::isspace(a) != 0 && std::isspace(b) != 0;
         });
 }
 

@@ -30,4 +30,17 @@ jobs:
         shell: cmd
         run: |
           .\bin\tests.exe
-
+  lint:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{matrix.os}}
+    steps:
+      - uses: actions/checkout@main
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DSTC_LINT=ON -DSTC_LINT_WARNINGS_ARE_ERRORS=ON
+          cmake --build .

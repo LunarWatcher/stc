@@ -53,10 +53,10 @@ typedef struct {
 } FntInfo;
 
 inline std::vector<float> generateUVCoords(int atlasWidth, int atlasHeight, const FntCharInfo& chr) {
-    float x = chr.x;
-    float y = chr.y;
-    float width = chr.width;
-    float height = chr.height;
+    auto x = (float) chr.x;
+    auto y = (float) chr.y;
+    auto width = (float) chr.width;
+    auto height = (float) chr.height;
 
     float reX = ((float) x) / atlasWidth;
     float reY = ((float) y) / atlasHeight;
@@ -178,7 +178,11 @@ inline FntInfo loadAndParseFnt(const std::string& fileName) {
             chr.xAdvance = std::any_cast<int>(vars.at("xadvance"));
             chr.page = std::any_cast<int>(vars.at("page"));
 
-            chr.uvCoordinates = generateUVCoords(info.scaleW, info.scaleH, chr);
+            chr.uvCoordinates = generateUVCoords(
+                (int) info.scaleW,
+                (int) info.scaleH,
+                chr
+            );
 
             info.characters[chr.id] = chr;
         }

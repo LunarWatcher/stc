@@ -1,0 +1,29 @@
+# Notes:
+# - clang-analyzer-optin.core.EnumCastOutOfRange: Useful, complains about std::filesystem::file_size for no fucking reason
+# - clang-analyzer-cplusplus.NewDeleteLeaks: borked (https://github.com/llvm/llvm-project/issues/55219)
+# - readability-qualified-auto: on the fence about it, but this defeats part of the point of auto
+Checks: >
+  -*,
+  bugprone-*,
+  clang-*,
+  misc-*,
+  performance-*,
+  portability-*,
+  modernize-deprecated-headers,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-exception-escape,
+  -bugprone-narrowing-conversions,
+  -clang-analyzer-optin.core.EnumCastOutOfRange,
+  -clang-diagnostic-unused-parameter,
+  -misc-non-private-*,
+  -misc-const-correctness,
+  -misc-include-cleaner,
+  -misc-use-anonymous-namespace,
+  -performance-avoid-endl,
+  -performance-enum-size,
+  -clang-analyzer-cplusplus.NewDeleteLeaks
+
+# Windows does not like to cooperate with the correct type of path slashes
+# Note: the above comment is copypasta from the .clang-tidy template I use, and does not currently apply
+# for obvious reasons
+HeaderFilterRegex: ".*\\/src\\/stc\\/.*"

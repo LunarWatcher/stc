@@ -14,6 +14,10 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${OUTPUT})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${OUTPUT})
 
+    option(STC_LINT "Whether or not to enable clang-tidy checks" OFF)
+    option(STC_LINT_WARNINGS_ARE_ERRORS "Whether or not to set -warnings-as-errors" OFF)
+
+
     if (NOT CMAKE_BUILD_TYPE)
         # Make explicit flags redundant for release builds
         set(CMAKE_BUILD_TYPE Release)
@@ -53,6 +57,26 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
         )
     else()
         message(WARNING "Not generating documentation: doxygen missing")
+    endif()
+
+    if (STC_LINT)
+        find_program(
+            CLANGTIDY
+            NAMES "clang-tidy" "clang-tidy.exe"
+            REQUIRED
+            )
+
+        set (CLANG_TIDY_COMMAND "${CLANGTIDY}" "--config-file=${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy")
+        if (STC_LINT_WARNINGS_ARE_ERRORS)
+            list (APPEND CLANG_TIDY_COMMAND  -warnings-as-errors=*)
+        endif()
+
+        if (WIN32)
+            list (APPEND CLANG_TIDY_COMMAND --extra-arg=/EHsc)
+        endif()
+
+        message(STATUS "Using CLANG_TIDY_COMMAND=${CLANG_TIDY_COMMAND}")
+        set_target_properties(stc PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
     endif()
 
 endif()
