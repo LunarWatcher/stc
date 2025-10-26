@@ -165,7 +165,7 @@ using BgColour = _detail::Colouriser<_detail::BACKGROUND>;
 
 template <Typography feature, typename CharT>
 static constexpr std::basic_ostream<CharT>& use(std::basic_ostream<CharT>& stream) {
-    if (shouldPrintColour(stream)) {
+    if (_detail::shouldPrintColour(stream)) {
         stream << "\033[" << static_cast<int>(feature) << "m";
     }
     return stream;
