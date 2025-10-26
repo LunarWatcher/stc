@@ -83,6 +83,20 @@ TEST_CASE("setEnv should work") {
     REQUIRE(std::getenv("TEST1") == nullptr);
 }
 
+TEST_CASE("setEnv should not cause UB") {
+    {
+        std::string k = "TEST2";
+        std::string v = "value2";
+        stc::setEnv(k.c_str(), v.c_str());
+    }
+    REQUIRE(std::getenv("TEST2") != nullptr);
+    REQUIRE(strcmp(std::getenv("TEST2"), "value2") == 0);
+    REQUIRE(stc::getEnv("TEST2") == "value2");
+
+    stc::setEnv("TEST2", nullptr);
+    REQUIRE(std::getenv("TEST2") == nullptr);
+}
+
 #ifndef _WIN32
 TEST_CASE("Vectorised syscommand should deal with output", "[Environment][syscommand2]") {
     int statusCode;
