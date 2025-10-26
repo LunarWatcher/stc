@@ -45,7 +45,7 @@ inline void setEnv(const char* name, const char* value, bool replace = true) {
         unsetenv(name);
     }
 #else
-    SetEnvironmentVariable(name.c_str(), value.c_str())
+    SetEnvironmentVariable(name.c_str(), value.c_str());
 #endif
 }
 

@@ -82,7 +82,6 @@ TEST_CASE("setEnv should work") {
     REQUIRE(std::getenv("TEST1") == nullptr);
 }
 
-
 #ifndef _WIN32
 TEST_CASE("Vectorised syscommand should deal with output", "[Environment][syscommand2]") {
     int statusCode;
