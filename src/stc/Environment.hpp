@@ -29,6 +29,27 @@
 namespace stc {
 
 /**
+ * Wrapper around setenv/unsetenv (UNIX) and SetEnvironmentVariable (Microsoft Windows Maximum Verbosity Only Operating
+ * System)
+ *
+ * \param name      The name of the environment variable
+ * \param value     The value of the environment variable. If null, the environment variable is deleted.
+ * \param replace   Whether or not to replace the environment variable if it exists. Only respected on UNIX. `true` is the
+ *                  only cross-platform-compatible value.
+ */
+inline void setEnv(const char* name, const char* value, bool replace = true) {
+#ifndef _WIN32
+    if (value != nullptr) {
+        setenv(name, value, (int) replace);
+    } else {
+        unsetenv(name);
+    }
+#else
+    SetEnvironmentVariable(name.c_str(), value.c_str())
+#endif
+}
+
+/**
  * Wrapper around various secure getenv methods. Falls back to `std::getenv` with a warning if none is available.
  */
 inline std::string getEnv(const char* name, const std::string& fail = "") {
@@ -442,7 +463,10 @@ inline std::string syscommand(std::vector<const char*> command, int* codeOutput 
  * std::system. 
  *
  */
-inline void syscommandNoCapture(std::vector<const char*> command, int* codeOutput = nullptr) {
+inline void syscommandNoCapture(
+    std::vector<const char*> command,
+    int* codeOutput = nullptr
+) {
     command.push_back(nullptr);
 
     auto pid = fork();

@@ -72,6 +72,17 @@ TEST_CASE("Verify that streams are correctly identified") {
     }
 }
 
+TEST_CASE("setEnv should work") {
+    stc::setEnv("TEST1", "value1");
+
+    REQUIRE(strcmp(std::getenv("TEST1"), "value1") == 0);
+    REQUIRE(stc::getEnv("TEST1") == "value1");
+
+    stc::setEnv("TEST1", nullptr);
+    REQUIRE(std::getenv("TEST1") == nullptr);
+}
+
+
 #ifndef _WIN32
 TEST_CASE("Vectorised syscommand should deal with output", "[Environment][syscommand2]") {
     int statusCode;

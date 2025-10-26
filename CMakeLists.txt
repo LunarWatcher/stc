@@ -30,6 +30,7 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     endif()
 
     add_subdirectory(tests)
+    add_subdirectory(demos)
     add_custom_target(test
         COMMAND tests ${ALUI_TEST_OPTIONS}
         DEPENDS tests
