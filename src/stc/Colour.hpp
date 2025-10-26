@@ -87,7 +87,7 @@ enum class FourBitColour {
 enum class Typography {
     BOLD = 1,
     FAINT = 2,
-ITALIC = 3,
+    ITALIC = 3,
     UNDERLINE = 4,
     SLOW_BLINK = 5,
 
@@ -179,6 +179,10 @@ struct Colouriser {
 using FgColour = _detail::Colouriser<_detail::FOREGROUND>;
 using BgColour = _detail::Colouriser<_detail::BACKGROUND>;
 
+/**
+ * Used to enable typography features. Only some typography features are supported, as described in the Typography
+ * struct.
+ */
 template <Typography feature, typename CharT>
 static constexpr std::basic_ostream<CharT>& use(std::basic_ostream<CharT>& stream) {
     if (_detail::shouldPrintColour(stream)) {
@@ -205,7 +209,9 @@ static constexpr std::basic_ostream<CharT>& force(std::basic_ostream<CharT>& str
     return stream;
 }
 
-
+/**
+ * Prints the reset ANSI code, clearing all active effects.
+ */
 template <typename CharT>
 static constexpr std::basic_ostream<CharT>& reset(std::basic_ostream<CharT>& stream) {
     if (_detail::shouldPrintColour(stream)) {
