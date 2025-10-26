@@ -11,8 +11,6 @@ add_executable(tests
     # I coudl've detected .starts_with() being used when that's a C++20 function
     # being used in a C++17 library :facepaw:
     src/compiling/EverythingCompilesTest.cpp
-
-    src/TestRunner.cpp
 )
 Include(FetchContent)
 
@@ -25,5 +23,5 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 target_include_directories(tests PUBLIC ./src/)
-target_link_libraries(tests Catch2::Catch2 stc)
+target_link_libraries(tests Catch2::Catch2WithMain stc)
 add_dependencies(tests pseudoecho)
