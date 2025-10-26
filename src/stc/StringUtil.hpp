@@ -1,4 +1,7 @@
-/** \file */
+/** \file 
+ *
+ * Whole bunch of stringutils. 
+ */
 #pragma once
 
 #include <algorithm>
@@ -11,11 +14,11 @@ namespace stc::string {
 
 /**
  * Splits a string by a character.
- * This is more or less replaced by ranges in C++20, but ranges have late support (GCC 10, which I annoyingly don't have, MSVC 19.29, never
- * implemented in Clang), making it somewhat unreliable. Even then, they currently lack limited splits, which I've had a use for several times.
+ * 
+ * This is partly covered by C++20 ranges, but C++20 ranges does not offer limiting the number of splits, which is very
+ * useful in certain parsing tasks. If you have no need for the limit argument, you probably want ranges instead.
  *
- * Or at least the limit isn't obviously a part of the split() function, confusing me.
- * Nonetheless, this splits the string.
+ * \see https://en.cppreference.com/w/cpp/ranges/split_view.html
  */
 inline std::vector<std::string> split(const std::string& input, const char delimiter, int64_t limit = -1) {
     if (delimiter == 0) {
@@ -56,6 +59,11 @@ inline std::vector<std::string> split(const std::string& input, const char delim
 
 /**
  * Splits a string by a substring. Calls the method splitting by character if delimiter.size() <= 1.
+ *
+ * This is partly covered by C++20 ranges, but C++20 ranges does not offer limiting the number of splits, which is very
+ * useful in certain parsing tasks. If you have no need for the limit argument, you probably want ranges instead.
+ *
+ * \see https://en.cppreference.com/w/cpp/ranges/split_view.html
  */
 inline std::vector<std::string> split(const std::string& input, const std::string& delimiter, int64_t limit = -1) {
     if (delimiter.size() == 1) {
@@ -101,6 +109,9 @@ inline std::vector<int> byteArrayOf(const std::string& input) {
     return out;
 }
 
+/**
+ * Turns a string into a string of bytes. Useful for debugging the internal representation of a string 
+ */
 inline std::string getByteString(const std::string& input) {
     std::string output;
     for (const char c : input) {
@@ -126,6 +137,9 @@ inline void replaceAll(std::string& input, const std::string& find, const std::s
     }
 }
 
+/**
+ * Strips sequential whitespace, but leaving one intact. This means at most one whitespace is preserved.
+ */
 inline void removeDuplicateWhitespace(const std::string& input, std::string& output) {
     std::unique_copy(
         input.begin(), input.end(), std::back_inserter(output),

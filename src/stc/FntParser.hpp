@@ -1,4 +1,12 @@
-/** \file */
+/** \file
+ *
+ *
+ * Defines a parser for .fnt files. Note that .fnt here refers to a metadata format used alongside .png, and not the
+ * binary image format.
+ *
+ * \deprecated  This module is no longer maintained, as I have switched to allegro, which has built-in .ttf parsing. That
+ *              and I cannot find where the .fnt files came from, so I doubt it's a proper format.
+ */
 #pragma once
 
 #include "StdFix.hpp"
@@ -14,6 +22,7 @@ namespace stc {
 
 namespace FntParser {
 
+[[deprecated("FntParser is no longer maintained, and should not be used.")]]
 typedef struct {
     int id;
     int x,
@@ -29,6 +38,7 @@ typedef struct {
     std::vector<float> uvCoordinates;
 } FntCharInfo;
 
+[[deprecated("FntParser is no longer maintained, and should not be used.")]]
 typedef struct {
     std::string faceName;
     int size; // In what unit?
@@ -52,6 +62,7 @@ typedef struct {
 
 } FntInfo;
 
+[[deprecated("FntParser is no longer maintained, and should not be used.")]]
 inline std::vector<float> generateUVCoords(int atlasWidth, int atlasHeight, const FntCharInfo& chr) {
     auto x = (float) chr.x;
     auto y = (float) chr.y;
@@ -77,6 +88,7 @@ inline std::vector<float> generateUVCoords(int atlasWidth, int atlasHeight, cons
     };
 }
 
+[[deprecated("FntParser is no longer maintained, and should not be used.")]]
 inline std::map<std::string, std::any> parseLine(const std::string& line) {
     std::map<std::string, std::any> keys;
 
@@ -119,6 +131,7 @@ inline std::map<std::string, std::any> parseLine(const std::string& line) {
     return keys;
 }
 
+[[deprecated("FntParser is no longer maintained, and should not be used.")]]
 inline FntInfo loadAndParseFnt(const std::string& fileName) {
     if (!std::filesystem::exists(fileName)) {
         throw std::runtime_error("File doesn't exist");

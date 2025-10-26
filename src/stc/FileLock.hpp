@@ -9,7 +9,7 @@
 
 #ifndef _WIN32
 #include <fcntl.h>
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 #include <sys/file.h>
 #else
@@ -195,7 +195,11 @@ public:
 #else
     [[nodiscard]]
 #endif
-    static std::shared_ptr<FileLock> dynamicAcquireLock(const std::filesystem::path& path, std::function<bool()> control, unsigned int sleepSeconds = 1) {
+    static std::shared_ptr<FileLock> dynamicAcquireLock(
+        const std::filesystem::path& path,
+        std::function<bool()> control,
+        unsigned int sleepSeconds = 1
+    ) {
         while (control()) {
             try {
                 std::shared_ptr<FileLock> lock = std::make_shared<FileLock>(path, true);

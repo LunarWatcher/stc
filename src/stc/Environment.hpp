@@ -3,6 +3,7 @@
 
 #include <filesystem>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <cstdlib>
 #include <regex>
@@ -27,6 +28,9 @@
 
 namespace stc {
 
+/**
+ * Wrapper around various secure getenv methods. Falls back to `std::getenv` with a warning if none is available.
+ */
 inline std::string getEnv(const char* name, const std::string& fail = "") {
 #if defined(_WIN32) || defined(_WIN64)
     char* value = nullptr;
@@ -57,7 +61,9 @@ inline std::string getEnv(const char* name, const std::string& fail = "") {
 }
 
 /**
- * Expands a user path (AKA a path starting with ~), independently of the OS.
+ * Expands a user path (AKA a path starting with ~), independently of the OS. Returns the path unmodified if the path
+ * isn't a user path.
+ *
  * This requires several OS-specific calls (specifically between Windows and UNIX, from what I can tell.
  * There's not much of a difference in this area between for an instance Linux and Mac. Special
  * implementation requirements will be taken when we get to a point where it's needed)
@@ -181,10 +187,14 @@ inline std::filesystem::path expandUserPath(const std::string& inputPath) {
     return std::filesystem::path{homePath} / remainingPath;
 }
 
+/**
+ * Returns the user's home directory. 
+ *
+ * Note that the windows implementation is wank, and may not be as reliable as the UNIX implementation. 
+ */
 inline std::filesystem::path getHome() {
 
     std::optional<std::string> username;
-    std::string remainingPath;
 
     std::string homePath = "";
 #if defined(_WIN32) || defined(_WIN64)
@@ -248,6 +258,16 @@ inline std::filesystem::path getHome() {
     return std::filesystem::path{homePath};
 }
 
+/**
+ * `std::system` alternative that returns the output from the subprocess.
+ *
+ * WARNING: This function spawns a shell under the hood, as it uses popen. DO NOT pass user input to this command; it is
+ * a security vulnerability, and `distraction & rm -rf /` as user input will ruin your day at best. This command, like
+ * `std::system`, requires significant input cleaning before use. If you're dealing with user input, use
+ * syscommand(std::vector<const char*>, int*) instead.
+ *
+ * \see https://pubs.opengroup.org/onlinepubs/9699919799/functions/popen.html
+ */
 inline std::string syscommand(const std::string& command, int* codeOutput = nullptr) {
     std::array<char, 128> buffer;
     std::string res;
@@ -281,8 +301,16 @@ inline std::string syscommand(const std::string& command, int* codeOutput = null
 
 #ifndef _WIN32
 /**
- * Low-level command execution, bypassing shell evaluation. For shell evaluation, use syscommand(string, int*), or pass
- * a shell directly to this command.
+ * Lower-level command that does the same thing syscommand(std::string, int*) does, but using a vector for arguments
+ * instead of a single string. 
+ *
+ * This is in theory slightly safer than using a string directly, provided the command you invoke is safe. Unless you do
+ * something dumb, all arguments are passed directly to the command (provided as the first argument of the vector), so
+ * unless the command you're invoking can do something unsafe, it's safe from && as input.
+ *
+ * There's still lots of ways user input can and will fuck you over, so do be careful.
+ *
+ * Not currently supported on Windows due to CreatePipe being a pain to work with.
  */
 inline std::string syscommand(std::vector<const char*> command, int* codeOutput = nullptr) {
     command.push_back(nullptr);
@@ -292,7 +320,9 @@ inline std::string syscommand(std::vector<const char*> command, int* codeOutput 
 
 //#ifndef _WIN32
     int fd[2];
-    pipe(fd);
+    if (pipe(fd) != 0) {
+        throw std::runtime_error("Failed to create pipe");
+    }
 
     auto pid = fork();
 
@@ -408,7 +438,9 @@ inline std::string syscommand(std::vector<const char*> command, int* codeOutput 
 }
 
 /**
- * (Theoretically) safe equivalent of std::system
+ * Same as syscommand(std::vector<const char*>, int*), but _doesn't_ return output. This is intended as a hardened
+ * std::system. 
+ *
  */
 inline void syscommandNoCapture(std::vector<const char*> command, int* codeOutput = nullptr) {
     command.push_back(nullptr);
@@ -433,8 +465,12 @@ inline void syscommandNoCapture(std::vector<const char*> command, int* codeOutpu
 }
 #endif
 
+/**
+ * Returns the hsotname of the machine.
+ */
 inline std::optional<std::string> getHostname() {
-    // According to the linux manpage, and the Windows docs page, it looks like approximately 256 bytes is the max length across all platforms.
+    // According to the linux manpage, and the Windows docs page, it looks like approximately 256 bytes is the max
+    // length across all platforms.
 #ifndef _WIN32
     constexpr size_t size = 256 + 2 /* + 2 for padding, just in case :) */;
 #else
@@ -474,7 +510,13 @@ enum class StreamType {
 };  
 
 /**
- * Utility wrapper around isatty (UNIX)/_isatty (Windows).
+ * Utility wrapper around isatty (UNIX)/_isatty (Windows). Can be used to determine if a stream type is a TTY or
+ * redirected to a file or similar.
+ *
+ * You probably don't want to use this function directly; use isCppStreamTTY instead.
+ *
+ * \param type  A StreamType. Because of how low-level this operates, this function only tells you what the OS redirects
+ *              stdout to. Useful if you have control of the streams.
  */
 inline bool isStreamTTY(StreamType type = StreamType::STDOUT) {
     if (type == StreamType::OTHER) {
@@ -489,6 +531,17 @@ inline bool isStreamTTY(StreamType type = StreamType::STDOUT) {
 #endif
 }
 
+/**
+ * Determines the StreamType for a given input stream. This is primarily intended as a utility function for
+ * isCppStreamTTY, but can be used standalone
+ *
+ * For now, it does not handle application-level redirects of `std::cout`, only OS-level redirects. This means that if
+ * you redirect the internal buffer, the function still detects it as stdout. This may or may not be a feature depending
+ * on your point of view, so for the time being, it's up to you to determine how to handle such redirects.
+ * 
+ * \returns StreamType::STDOUT if ss is std::cout or std::wcout, StreamType::STDERR if ss is std::cerr or std::wcerr,
+ *          and StreamType::OTHER for anything else.
+ */
 template <typename CharT>
 static constexpr StreamType getOutputStreamType(std::basic_ostream<CharT>& ss) {
     if constexpr(std::is_same_v<CharT, char>) {
@@ -507,6 +560,9 @@ static constexpr StreamType getOutputStreamType(std::basic_ostream<CharT>& ss) {
     return StreamType::OTHER;
 }
 
+/**
+ * \returns Whether or not a given basic_ostream is a TTY. Shorthand for isStreamTTY(getOutputStreamType(stream))
+ */
 template <typename CharT>
 inline bool isCppStreamTTY(std::basic_ostream<CharT>& ss) {
     return isStreamTTY(

@@ -1,17 +1,19 @@
-/** \file */
+/** \file 
+ *
+ * This file contains more direct fixes to stdlib functions, largely functions that have severe limitations.
+ */
 #pragma once
 
 #include <istream>
 #include <string>
 
-namespace stc {
-
-namespace StdFix {
+namespace stc::StdFix {
 
 /**
  * Implementation of std::getline that handles \r, \n, and \r\n. 
  *
- * This lets you consume arbitrary files of unknown line endings without breaking hard. 
+ * This lets you consume arbitrary files of unknown line endings without breaking hard because you're accidentally
+ * parsing a CRLF file on Linux, where getline only checks for \n.
  *
  * \param is An input stream to get the line from 
  * \param[out] str The string to put the line in.
@@ -39,8 +41,6 @@ inline std::istream& getline(std::istream& is, std::string& str) {
     }
 
     return is;
-}
-
 }
 
 }
