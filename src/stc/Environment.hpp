@@ -29,8 +29,7 @@
 namespace stc {
 
 /**
- * Wrapper around setenv/unsetenv (UNIX) and SetEnvironmentVariable (Microsoft Windows Maximum Verbosity Only Operating
- * System)
+ * Wrapper around setenv/unsetenv (UNIX) and _putenv_s (Windows)
  *
  * \param name      The name of the environment variable
  * \param value     The value of the environment variable. If null, the environment variable is deleted.
@@ -45,7 +44,11 @@ inline void setEnv(const char* name, const char* value, bool replace = true) {
         unsetenv(name);
     }
 #else
-    SetEnvironmentVariable(name, value);
+    if (value != nullptr) {
+        _putenv_s(name, value);
+    } else {
+        _putenv_s(name, "");
+    }
 #endif
 }
 

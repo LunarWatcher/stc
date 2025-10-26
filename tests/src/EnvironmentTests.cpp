@@ -75,6 +75,7 @@ TEST_CASE("Verify that streams are correctly identified") {
 TEST_CASE("setEnv should work") {
     stc::setEnv("TEST1", "value1");
 
+    REQUIRE(std::getenv("TEST1") != nullptr);
     REQUIRE(strcmp(std::getenv("TEST1"), "value1") == 0);
     REQUIRE(stc::getEnv("TEST1") == "value1");
 
