@@ -6,9 +6,9 @@
 #include "Environment.hpp"
 
 /**
- * Colour module. 
+ * \brief Module for ANSI colours.
  *
- * Interfaces with `std::ostream`s to print colour and some other ANSI codes. 
+ * Interfaces with `std::ostream`s to print colour and some other ANSI codes.
  *
  * Example use:
  * ```cpp
@@ -20,7 +20,7 @@
  * std::cout << stc::colour::fg<240, 0, 240> << "Whatever" << stc::colour::reset << std::endl;
  * ```
  * `::fg` and `::bg` have the exact same interface, but change foreground and background colours respectively. In
- * addition to colour, `stc::colour::use` exists, which takes an stc::colour::Typography. 
+ * addition to colour, `stc::colour::use` exists, which takes an stc::colour::Typography.
  *
  * Like typography, 8 bit colours are hard-coded in stc::colour::FourBitColour.
  *
@@ -35,9 +35,25 @@
  * significantly by sticking to just a few colours. If you do anything major with colour, you'll probably want to offer
  * the user a way to change the colours at an app level. Again, out of scope for the module, but this is not discussed
  * nearly often enough, so I might as well mention it.
+ *
+ * \namespace stc::colour
  */
 namespace stc::colour {
 
+/**
+ * Special values used for four bit colours. This is a standalone enum because both 8 and 24 bit colours use an entire
+ * range (0-255 and 3x 0-255 respectively), whereas 4 bit colours are contrived bullshit.
+ *
+ * The underlying ANSI colour format for 4 bit colours also differentiates foreground and background by the raw value.
+ * Black foreground is 30, while black background is 40. Bright black foreground is 90, bright black background is 100.
+ * Letting you, the end user, keep track of all these values fucking _sucks_, so an enum is better.
+ *
+ * Also, it's just 16 values to hardcode, with background just being these values + 10, with any value other than these
+ * specific colour values doing _all kinds of other shit_. Passing 38 by accident invokes the start of the 8 and 24 bit
+ * colour modes (which is 38;5;n and 38;2;r;g;b respectively).
+ *
+ * \see https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit
+ */
 enum class FourBitColour {
     BLACK = 30,
     RED = 31,
@@ -82,7 +98,7 @@ ITALIC = 3,
     NO_ITALIC = 23,
     NO_UNDERLINE = 24,
     NO_BLINKING = 25
-};  
+};
 
 namespace _detail {
 
@@ -119,7 +135,7 @@ struct Colouriser {
     static constexpr std::basic_ostream<CharT>& fourBit(std::basic_ostream<CharT>& stream) {
         if (shouldPrintColour(stream)) {
             stream << "\033["
-                << (Mode == _detail::FOREGROUND ? static_cast<int>(Colour) : (static_cast<int>(Colour) + 10)) 
+                << (Mode == _detail::FOREGROUND ? static_cast<int>(Colour) : (static_cast<int>(Colour) + 10))
                 << "m";
         }
         return stream;
@@ -127,7 +143,7 @@ struct Colouriser {
 
     /**
      * Note that unlike four bit colours, 8 bit colours use a full uint8_t (from 0 to 255), so the values themselves are
-     * not named in an enum. 
+     * not named in an enum.
      *
      * \see https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
      */
@@ -141,7 +157,7 @@ struct Colouriser {
 
     /**
      * Takes three template arguments corresponding to the red, green, and blue respectively, and works identically to
-     * standard RGB colours. 
+     * standard RGB colours.
      *
      * Note that while the underlying ANSI guarantees the colour you provide is used, there's no guarantee it'll render
      * visibly everywhere. Remember that some people use light mode or theme variants that may not work with the colour
@@ -174,7 +190,7 @@ static constexpr std::basic_ostream<CharT>& use(std::basic_ostream<CharT>& strea
 /**
  * Can be used to force colouring to happen. By default, colouring is only applied if the stream is a TTY. If it isn't,
  * colours are disabled. This means if stdout/stderr is redirected, or if you write to a stringstream, no colours are
- * written. You can override this here, by using 
+ * written. You can override this here, by using
  * ```cpp
  * ss << stc::colour::force
  *     << // commands
@@ -184,7 +200,7 @@ static constexpr std::basic_ostream<CharT>& use(std::basic_ostream<CharT>& strea
  */
 template <bool val = true, typename CharT>
 static constexpr std::basic_ostream<CharT>& force(std::basic_ostream<CharT>& stream) {
-    stream.iword(_detail::getStreamConfigIdx()) = val ? _detail::MODE_FORCE : _detail::MODE_AUTO; 
+    stream.iword(_detail::getStreamConfigIdx()) = val ? _detail::MODE_FORCE : _detail::MODE_AUTO;
 
     return stream;
 }
