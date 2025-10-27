@@ -45,9 +45,7 @@ inline void setEnv(const char* name, const char* value, bool replace = true) {
         unsetenv(name);
     }
 #else
-    const char* _name = strdup(name);
     if (value != nullptr) {
-        const char* _value = strdup(value);
         _putenv_s(_name, _value);
     } else {
         _putenv_s(_name, "");
