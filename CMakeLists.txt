@@ -26,7 +26,9 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set (CMAKE_CXX_STANDARD 20)
 
     if (NOT WIN32)
-        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic -Wall -Wextra")
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic -Wall -Wextra -fsanitize=undefined")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fsanitize=address")
     endif()
 
     add_subdirectory(tests)
