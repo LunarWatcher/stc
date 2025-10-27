@@ -46,9 +46,9 @@ inline void setEnv(const char* name, const char* value, bool replace = true) {
     }
 #else
     if (value != nullptr) {
-        _putenv_s(_name, _value);
+        _putenv_s(name, value);
     } else {
-        _putenv_s(_name, "");
+        _putenv_s(name, "");
     }
 #endif
 }
