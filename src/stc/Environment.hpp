@@ -20,6 +20,7 @@
 #define NOMINMAX
 #include <Windows.h>
 #include <io.h>
+#include <cstring>
 
 #define popen _popen
 #define pclose _pclose
@@ -44,10 +45,12 @@ inline void setEnv(const char* name, const char* value, bool replace = true) {
         unsetenv(name);
     }
 #else
+    const char* _name = strdup(name);
     if (value != nullptr) {
-        _putenv_s(name, value);
+        const char* _value = strdup(value);
+        _putenv_s(_name, _value);
     } else {
-        _putenv_s(name, "");
+        _putenv_s(_name, "");
     }
 #endif
 }
