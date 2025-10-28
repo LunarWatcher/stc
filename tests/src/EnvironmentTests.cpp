@@ -97,6 +97,15 @@ TEST_CASE("setEnv should not cause UB") {
     REQUIRE(std::getenv("TEST2") == nullptr);
 }
 
+TEST_CASE("executablePath()") {
+    auto path = stc::executablePath();
+#ifndef _WIN32
+    REQUIRE(path.ends_with("/bin/tests"));
+#else
+    REQUIRE(path.ends_with("\\bin\\tests.exe"));
+#endif
+}
+
 #ifndef _WIN32
 TEST_CASE("Vectorised syscommand should deal with output", "[Environment][syscommand2]") {
     int statusCode;

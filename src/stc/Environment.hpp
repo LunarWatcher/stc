@@ -559,6 +559,30 @@ inline bool isStreamTTY(StreamType type = StreamType::STDOUT) {
 #endif
 }
 
+inline std::string executablePath() {
+#ifndef _WIN32
+    // cannot get over how just convenient and portable this is. 
+    // It's literally just a standard library function with a special path
+    return std::filesystem::canonical("/proc/self/exe");
+#else
+    // Then there's _windows_
+    //
+    // Look at all this fucking shit
+    std::vector<char> pathBuf; 
+    DWORD copied = 0;
+    do {
+        pathBuf.resize(pathBuf.size() + MAX_PATH);
+        copied = GetModuleFileNameA(0, &pathBuf.at(0), pathBuf.size());
+    } while(copied >= pathBuf.size());
+    pathBuf.resize(copied);
+
+    return std::string {
+        pathBuf.begin(),
+        pathBuf.end()
+    };
+#endif
+}
+
 /**
  * Determines the StreamType for a given input stream. This is primarily intended as a utility function for
  * isCppStreamTTY, but can be used standalone
