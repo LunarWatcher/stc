@@ -577,10 +577,12 @@ inline std::string executablePath() {
         throw std::runtime_error("Crapple OS strikes again");
     }
 
-    return std::string {
-        dirNameBuffer,
-        size
-    };
+    return std::filesystem::canonical(
+        std::string {
+            dirNameBuffer,
+            size
+        }
+    );
 #elif !defined _WIN32
     // cannot get over how just convenient and portable this is. 
     // It's literally just a standard library function with a special path

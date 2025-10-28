@@ -99,6 +99,7 @@ TEST_CASE("setEnv should not cause UB") {
 
 TEST_CASE("executablePath()") {
     auto path = stc::executablePath();
+    INFO(path);
 #ifndef _WIN32
     REQUIRE(path.ends_with("/bin/tests"));
 #else
