@@ -563,6 +563,10 @@ inline bool isStreamTTY(StreamType type = StreamType::STDOUT) {
 #endif
 }
 
+/**
+ * Wrapper around _NSGetExecutablePath (Crapplebook ShitOS), GetModuleFileNameA (Microsoft "Excessively verbose for the
+ * shits and giggles" Windows), and /proc/self/exe (everything else)
+ */
 inline std::string executablePath() {
 #ifdef __APPLE__
     const size_t bufSize = PATH_MAX + 1;
@@ -576,8 +580,7 @@ inline std::string executablePath() {
     return std::string {
         dirNameBuffer,
         size
-    }
-
+    };
 #elif !defined _WIN32
     // cannot get over how just convenient and portable this is. 
     // It's literally just a standard library function with a special path
