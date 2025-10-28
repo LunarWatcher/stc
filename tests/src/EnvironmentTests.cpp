@@ -105,6 +105,7 @@ TEST_CASE("executablePath()") {
 #else
     REQUIRE(path.ends_with("\\bin\\tests.exe"));
 #endif
+    REQUIRE(!path.starts_with("./"));
 }
 
 #ifndef _WIN32
