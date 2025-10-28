@@ -27,6 +27,10 @@
 #define WEXITSTATUS
 #endif
 
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
 namespace stc {
 
 /**
@@ -560,7 +564,21 @@ inline bool isStreamTTY(StreamType type = StreamType::STDOUT) {
 }
 
 inline std::string executablePath() {
-#ifndef _WIN32
+#ifdef __APPLE__
+    const size_t bufSize = PATH_MAX + 1;
+    char dirNameBuffer[bufSize];
+    uint32_t size = bufSize;
+
+    if (_NSGetExecutablePath(dirNameBuffer, &size) != 0) {
+        throw std::runtime_error("Crapple OS strikes again");
+    }
+
+    return std::string {
+        dirNameBuffer,
+        size
+    }
+
+#elif !defined _WIN32
     // cannot get over how just convenient and portable this is. 
     // It's literally just a standard library function with a special path
     return std::filesystem::canonical("/proc/self/exe");
