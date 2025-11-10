@@ -44,7 +44,7 @@ TEST_CASE("Syscommand should handle return codes", "[Environment][syscommand]") 
 
 TEST_CASE("Verify hostname return value", "[Environment][getHostname]") {
     auto control = stc::syscommand("hostname");
-    if (auto eol = control.find('\n'); eol >= 0) {
+    if (auto eol = control.find('\n'); eol != std::string::npos) {
         control.replace(eol, control.size() - eol, "");
     }
 

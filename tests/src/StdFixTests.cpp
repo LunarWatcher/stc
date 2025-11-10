@@ -5,7 +5,7 @@
 
 #include "stc/StdFix.hpp"
 
-TEST_CASE("Ensure getline works like normal", "[getline]") {
+TEST_CASE("Ensure StdFix::getline works like normal", "[getline]") {
     std::stringstream s("This is\na line\nand so is this");
 
     std::string buff;
@@ -19,7 +19,7 @@ TEST_CASE("Ensure getline works like normal", "[getline]") {
     REQUIRE(buff.empty());
 }
 
-TEST_CASE("Ensure it eats \\r, \\n, and \\r\\n in mixed mode", "[getline]") {
+TEST_CASE("Ensure StdFix::getline eats \\r, \\n, and \\r\\n in mixed mode", "[getline]") {
     std::stringstream s("This is a carriage line\rthis is a windows line\r\nand this is a line using the only sane option of the bunch\n");
 
     std::string buff;

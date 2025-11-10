@@ -341,6 +341,7 @@ inline std::string syscommand(const std::string& command, int* codeOutput = null
  *
  * Not currently supported on Windows due to CreatePipe being a pain to work with.
  */
+[[deprecated("Deprecated in favour of a better, fully integrated API. Switch to stc::Unix::Process. This method has vulnerabilities that will not be fixed")]]
 inline std::string syscommand(std::vector<const char*> command, int* codeOutput = nullptr) {
     command.push_back(nullptr);
     std::array<char, 256> buffer;
@@ -369,7 +370,7 @@ inline std::string syscommand(std::vector<const char*> command, int* codeOutput 
         exit(1);
     } else {
         close(fd[1]);
-        size_t bytes = 0;
+        ssize_t bytes = 0;
         while ((bytes = read(
             fd[0],
             buffer.data(), buffer.size()
@@ -471,6 +472,7 @@ inline std::string syscommand(std::vector<const char*> command, int* codeOutput 
  * std::system. 
  *
  */
+[[deprecated("Deprecated in favour of a better, fully integrated API. Switch to stc::Unix::Process. This method has vulnerabilities that will not be fixed")]]
 inline void syscommandNoCapture(
     std::vector<const char*> command,
     int* codeOutput = nullptr
@@ -498,7 +500,7 @@ inline void syscommandNoCapture(
 #endif
 
 /**
- * Returns the hsotname of the machine.
+ * Returns the hostname of the machine.
  */
 inline std::optional<std::string> getHostname() {
     // According to the linux manpage, and the Windows docs page, it looks like approximately 256 bytes is the max

@@ -26,6 +26,13 @@ Some of the modules in this library depend on other modules. These are explicitl
 | --- | --- | --- | --- |
 | `stc/Colour.hpp` | Utility library | ANSI colour utility library for C++ streams | `Environment.hpp` |
 
+### Extra modules
+
+Aside the modules in stc's core library, there are some standalone modules that aren't included by default.
+
+* `stc::testutil`: includes several test utilities, either aimed at use with [Catch2](https://github.com/catchorg/Catch2/), or more general-purpose that works with anything.
+
+Note that the key here can be used for linking, like `target_link_libraries(tests PUBLIC stc::testutil)`
 
 ## Usage
 

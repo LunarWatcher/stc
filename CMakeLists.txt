@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
 project(stc)
 
-add_library(stc INTERFACE)
-target_include_directories(stc INTERFACE src/)
+add_subdirectory(src)
+add_subdirectory(extra-modules)
+
+add_library(stc::stc ALIAS stc)
+add_library(stc::testutil ALIAS stc-testutil)
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     message (STATUS "stc: Running standalone, enabling test targets.")
