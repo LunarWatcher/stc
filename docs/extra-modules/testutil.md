@@ -4,6 +4,8 @@ CMake target: `stc::testutil`
 
 Namespace: `stc::testutil`
 
+This module contains utilities meant specifically for testing. 
+
 ## Files
 
 ### CaptureStream.hpp
