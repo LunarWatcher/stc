@@ -8,6 +8,8 @@ add_executable(tests
     src/StdFixTests.cpp
     src/StringUtilTests.cpp
 
+    src/extra-modules/test/CaptureStreamTests.cpp
+
     src/unix/UnixCommandTests.cpp
 
     # This test does not contain any tests, but is a test through just existing.
