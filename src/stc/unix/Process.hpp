@@ -317,7 +317,12 @@ public:
 
         
     }
-    virtual ~Process() = default;
+
+    virtual ~Process() {
+        if (!this->getExitCode().has_value()) {
+            this->terminate();
+        }
+    }
 
     /**
      * Returns the stdout output. 
@@ -395,6 +400,20 @@ public:
             statusCode = WEXITSTATUS(statusResult);
             return statusCode;
         }
+    }
+
+    /**
+     * Sends sigkill to the process
+     */
+    void stop() {
+        kill(*pid, SIGKILL);
+    }
+
+    /**
+     * Sends sigterm to the process.
+     */
+    void terminate() {
+        kill(*pid, SIGTERM);
     }
 
     void closeStdin() {
