@@ -8,12 +8,13 @@ add_executable(tests
     src/StdFixTests.cpp
     src/StringUtilTests.cpp
 
+    src/unix/UnixCommandTests.cpp
+
     # This test does not contain any tests, but is a test through just existing.
     # It includes everything, which forces everything to be evaluated, which means 
     # I coudl've detected .starts_with() being used when that's a C++20 function
     # being used in a C++17 library :facepaw:
     src/compiling/EverythingCompilesTest.cpp
-    src/compiling/UnixCommand.cpp
 )
 Include(FetchContent)
 
