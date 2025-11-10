@@ -318,11 +318,7 @@ public:
         
     }
 
-    virtual ~Process() {
-        if (!this->getExitCode().has_value()) {
-            this->terminate();
-        }
-    }
+    virtual ~Process() = default;
 
     /**
      * Returns the stdout output. 
