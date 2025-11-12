@@ -388,7 +388,9 @@ public:
      */
     int block() {
         if (this->interface) {
-            inputCollector.join();
+            if (inputCollector.joinable()) {
+                inputCollector.join();
+            }
             return statusCode;
         } else {
             int statusResult;
