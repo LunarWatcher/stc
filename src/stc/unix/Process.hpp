@@ -15,9 +15,11 @@
  */
 
 #include <array>
+#include <atomic>
 #include <cstdlib>
 #include <fcntl.h>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -186,6 +188,20 @@ struct Pipes {
     }
 };
 
+/**
+ * Shorthand for creating a new pipe. Saves a few characters, does nothing special aside calling std::make_shared
+ */
+inline std::shared_ptr<Pipe> createPipe() {
+    return std::make_shared<Pipe>();
+}
+
+/**
+ * Shorthand for creating a new PTY. Saves a few characters, does nothing special aside calling std::make_shared
+ */
+inline std::shared_ptr<PTY> createPTY() {
+    return std::make_shared<PTY>();
+}
+
 class Process {
 protected:
     std::optional<decltype(fork())> pid = std::nullopt;
@@ -197,7 +213,8 @@ protected:
     std::mutex lock;
 
     std::thread inputCollector;
-    int statusCode = -1;
+    std::atomic<int> statusCode = -1;
+    std::atomic<std::optional<bool>> exitedNormally;
     bool running = true;
 
     void doSpawnCommand(
@@ -250,9 +267,23 @@ protected:
         while (true) {
             readImpl();
 
-            int statusResult;
-            if (waitpid(*pid, &statusResult, WNOHANG)) {
-                statusCode = WEXITSTATUS(statusResult);
+            int wstatus;
+            if (waitpid(*pid, &wstatus, WNOHANG)) {
+                if (WIFEXITED(wstatus)) {
+                    statusCode = WEXITSTATUS(wstatus);
+                    exitedNormally = true;
+                } else if (WIFSIGNALED(wstatus)) {
+                    statusCode = WTERMSIG(wstatus);
+                    exitedNormally = false;
+                } else if (WIFSTOPPED(wstatus)) {
+                    statusCode = WSTOPSIG(wstatus);
+                    exitedNormally = false;
+                } else {
+                    std::cerr
+                        << "WARNING: stc::Unix::Process got an unknown exit type. Cannot set exit code" 
+                        << std::endl;
+                    exitedNormally = false;
+                }
                 break;
             }
         }
@@ -318,7 +349,9 @@ public:
         
     }
 
-    virtual ~Process() = default;
+    virtual ~Process() {
+        stop();
+    }
 
     /**
      * Returns the stdout output. 
@@ -401,23 +434,37 @@ public:
     }
 
     /**
-     * Sends sigkill to the process
+     * Sends sigterm to the process.
      */
     void stop() {
-        kill(*pid, SIGKILL);
+        if (statusCode == -1) {
+            kill(*pid, SIGTERM);
+        }
     }
 
     /**
-     * Sends sigterm to the process.
+     * Sends sigkill to the process. You should prefer using stop() over this if possible, as sigkill skips cleanup in
+     * the child process, which isn't always acceptable.
      */
-    void terminate() {
-        kill(*pid, SIGTERM);
+    void sigkill() {
+        if (statusCode == -1) {
+            kill(*pid, SIGKILL);
+        }
     }
 
     void closeStdin() {
         if (!this->interface.has_value()) {
             throw std::runtime_error("Must use pipe or pty mode to use this function");
         }
+    }
+
+    /**
+     * \returns whether or not the process exited normally, i.e. its end wasn't caused by a signal. This does not imply
+     *          that the return code is 0, only that it wasn't stopped or terminated.
+     *          Returns std::nullopt if the process hasn't exited yet.
+     */
+    std::optional<bool> hasExitedNormally() {
+        return exitedNormally;
     }
 
     std::optional<int> getExitCode() {

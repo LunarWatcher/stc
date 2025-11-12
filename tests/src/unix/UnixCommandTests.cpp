@@ -1,3 +1,5 @@
+#include <format>
+#include <format>
 #if !defined(_WIN32) && !defined(__APPLE__)
 
 #include "_meta/Constants.hpp"
@@ -27,7 +29,7 @@ Argument: Then suddenly, catgirls
     REQUIRE(p.getStdoutBuffer() == "");
 
     REQUIRE(p.getStderrBuffer() == "");
-} 
+}
 
 TEST_CASE("Process should work without pipes", "[Process]") {
     stc::Unix::Process p({
@@ -52,6 +54,67 @@ TEST_CASE("Process should work with PTY mode", "[Process]") {
 
     INFO(p.getStdoutBuffer());
     REQUIRE(p.getStdoutBuffer().find("$ echo 'hi'") != std::string::npos);
+}
+
+TEST_CASE("Process should handle signals appropriately", "[Process]") {
+    SECTION("PTY mode") {
+        {
+            stc::Unix::Process p({
+                "/usr/bin/env", "bash", "-"
+            }, std::make_shared<stc::Unix::PTY>());
+            int signal;
+            SECTION("SIGKILL") {
+                p.sigkill();
+                signal = 9;
+            }
+            SECTION("SIGTERM") {
+                p.stop();
+                signal = 15;
+            }
+            REQUIRE_NOTHROW(
+                p.block() == signal
+            );
+            REQUIRE_FALSE(p.hasExitedNormally().value());
+        }
+    }
+    SECTION("Pipe mode") {
+        {
+            stc::Unix::Process p({
+                "/usr/bin/env", "bash", "-"
+            }, stc::Unix::Pipes {});
+            int signal;
+            SECTION("SIGKILL") {
+                p.sigkill();
+                signal = 9;
+            }
+            SECTION("SIGTERM") {
+                p.stop();
+                signal = 15;
+            }
+            REQUIRE(
+                p.block() == signal
+            );
+            REQUIRE_FALSE(p.hasExitedNormally().value());
+        }
+    }
+}
+
+TEST_CASE("exitedNormally should not be set by a self-exiting process", "[Process]") {
+    stc::Unix::Process p({
+        "/usr/bin/env", "bash", "-"
+    }, stc::Unix::Pipes { .stdinPipe = stc::Unix::createPipe() });
+    int code;
+    SECTION("Non-zero code") {
+        code = 69;
+    }
+    SECTION("Zero code") {
+        code = 0;
+    }
+    std::string command = std::format("exit {}\n", code);
+    REQUIRE(p.writeToStdin(command) == (ssize_t) command.length());
+    REQUIRE(p.block() == code);
+    REQUIRE(p.hasExitedNormally().has_value());
+    REQUIRE(p.hasExitedNormally().value() == true);
 }
 
 #endif
