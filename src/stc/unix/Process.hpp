@@ -238,6 +238,14 @@ struct Environment {
      * Whether or not to start with `os.environ`. If false, nothing included in `os.environ` is forwarded.
      */
     bool extendEnviron = true;
+
+    void validate() const {
+        for (auto& [k, v] : env) {
+            if (k.find('=') != std::string::npos) {
+                throw std::runtime_error("Illegal key: " + k);
+            }
+        }
+    }
 };
 
 class Process {
@@ -287,11 +295,6 @@ protected:
             + env->env.size()
         );
         for (const auto& [k, v] : env->env) {
-            if (k.find('=') != std::string::npos) {
-                std::cerr << "Env variable key cannot contain =" << std::endl;
-                exit(69);
-            }
-
             if (env->extendEnviron) {
                 // If we're extending environ, keys here can conflict with environ. They won't conflict internally,
                 // because env is a non-multimap, and we enforce keys not containing '='
@@ -329,6 +332,10 @@ protected:
         const std::optional<Environment>& env
     ) {
         std::vector<const char*> convertedCommand;
+
+        if (env) {
+            env->validate();
+        }
 
         convertedCommand.reserve(command.size() + 1);
         for (auto& str : command) {
