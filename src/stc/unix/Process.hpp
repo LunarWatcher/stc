@@ -287,6 +287,25 @@ protected:
             + env->env.size()
         );
         for (const auto& [k, v] : env->env) {
+            if (k.find('=') != std::string::npos) {
+                std::cerr << "Env variable key cannot contain =" << std::endl;
+                exit(69);
+            }
+
+            if (env->extendEnviron) {
+                // If we're extending environ, keys here can conflict with environ. They won't conflict internally,
+                // because env is a non-multimap, and we enforce keys not containing '='
+                data->erase(
+                    std::remove_if(
+                        data->begin(),
+                        data->end(), 
+                        [&](const auto& v) -> bool {
+                            return strncmp(v, k.data(), k.size()) == 0;
+                        }
+                    ), data->end()
+                );
+            }
+
             std::string combined = std::format(
                 "{}={}", k, v
             );

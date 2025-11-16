@@ -1,3 +1,4 @@
+#include "stc/Environment.hpp"
 #if !defined(_WIN32) && !defined(__APPLE__)
 
 #include <format>
@@ -213,5 +214,42 @@ TEST_CASE("stc::Unix::Environment should merge properly with environ", "[Process
     REQUIRE(envs.at(size) == "OwO=x3 nuzzles pounces on you");
 }
 
+TEST_CASE("stc::Unix::Environment defining existing variables shouldn't cause problems", "[Process]") {
+    // Used to sneak stuff into environ()
+    stc::setEnv("__PROCESS_TEST_CASE", "not_overridden");
+
+    stc::Unix::Process p({
+        "/usr/bin/env"
+    }, stc::Unix::Pipes::shared(false), stc::Unix::Environment {
+        {{"__PROCESS_TEST_CASE", "Trans rights are human rights"}},
+        true
+    });
+
+    REQUIRE(p.block() == 0);
+    auto out = p.getStdoutBuffer();
+    auto envs = stc::string::split(out, "\n");
+
+    size_t size = 0;
+    for (char **env = environ; *env != nullptr; env++) {
+        ++size;
+    }
+
+    INFO(out);
+    INFO(
+        "If this mismatches, it's possible a race condition bug has been reintroduced. "
+        "This largely applies if envs.size() == 0. This results in flaky behaviour here"
+    );
+    REQUIRE(
+        // +1 to account for _=/usr/bin/env, which is added by `env`
+        // __PROCESS_TEST_CASE does not need to be registered, because it's added directly to environ by setEnv
+        envs.size() == size + 1
+    );
+    // Looks like order is guaranteed, which is neat
+    for (size_t i = 0; i < size; ++i) {
+        if (envs.at(i).starts_with("__PROCESS_TEST_CASE")) {
+            REQUIRE(envs.at(i) == "__PROCESS_TEST_CASE=Trans rights are human rights");
+        }
+    }
+} 
 
 #endif
