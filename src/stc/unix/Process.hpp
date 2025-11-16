@@ -305,7 +305,8 @@ protected:
         for (const auto& [k, v] : env->env) {
             if (env->extendEnviron) {
                 // If we're extending environ, keys here can conflict with environ. They won't conflict internally,
-                // because env is a non-multimap, and we enforce keys not containing '='
+                // because env is a non-multimap, and we enforce keys not containing '=', so no weird injection shit
+                // resulting in identical strings.
                 data->erase(
                     std::remove_if(
                         data->begin(),
