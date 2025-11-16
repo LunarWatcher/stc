@@ -1,10 +1,13 @@
-#include <format>
-#include <format>
 #if !defined(_WIN32) && !defined(__APPLE__)
 
+#include <format>
+#include <thread>
+#include <stc/StringUtil.hpp>
 #include "_meta/Constants.hpp"
 #include <stc/unix/Process.hpp>
 #include <catch2/catch_test_macros.hpp>
+
+using namespace std::literals;
 
 TEST_CASE("Process should work with pipes", "[Process]") {
     stc::Unix::Process p(
@@ -116,5 +119,99 @@ TEST_CASE("exitedNormally should not be set by a self-exiting process", "[Proces
     REQUIRE(p.hasExitedNormally().has_value());
     REQUIRE(p.hasExitedNormally().value() == true);
 }
+
+// Note that the environment forwarding test-cases shouldn't 
+TEST_CASE("Baseline: Environment should default to environ", "[Process]") {
+    stc::Unix::Process p({
+        "/usr/bin/env"
+    }, stc::Unix::Pipes::shared(false));
+
+    REQUIRE(p.block() == 0);
+    auto out = p.getStdoutBuffer();
+    auto envs = stc::string::split(out, "\n");
+
+    size_t size = 0;
+    for (char **env = environ; *env != nullptr; env++) {
+        ++size;
+    }
+
+    INFO(out);
+    INFO(
+        "If this mismatches, it's possible a race condition bug has been reintroduced. "
+        "This largely applies if envs.size() == 0. This results in flaky behaviour here"
+    );
+    REQUIRE(
+        // +1 to account for _=/usr/bin/env, which is added by `env`
+        envs.size() == size + 1
+    );
+    // Looks like order is guaranteed, which is neat
+    for (size_t i = 0; i < size; ++i) {
+        REQUIRE(
+            strcmp(*(environ + i), envs.at(i).c_str()) == 0
+        );
+    }
+}
+
+TEST_CASE("stc::Unix::Environment should be able to ignore environ", "[Process]") {
+    stc::Unix::Process p({
+        "/usr/bin/env"
+    }, stc::Unix::Pipes::shared(false), stc::Unix::Environment {
+        {{"OwO", "x3 nuzzles pounces on you"}},
+        false
+    });
+
+    REQUIRE(p.block() == 0);
+    auto out = p.getStdoutBuffer();
+    auto envs = stc::string::split(out, "\n");
+
+    INFO(out);
+    INFO(
+        "If this mismatches, it's possible a race condition bug has been reintroduced. "
+        "This largely applies if envs.size() == 0. This results in flaky behaviour here"
+    );
+    REQUIRE(
+        // OwO + _=/usr/bin/env
+        envs.size() == 2
+    );
+    REQUIRE(envs.at(0) == "OwO=x3 nuzzles pounces on you");
+}
+
+TEST_CASE("stc::Unix::Environment should merge properly with environ", "[Process]") {
+    stc::Unix::Process p({
+        "/usr/bin/env"
+    }, stc::Unix::Pipes::shared(false), stc::Unix::Environment {
+        {{"OwO", "x3 nuzzles pounces on you"}},
+        true
+    });
+
+    REQUIRE(p.block() == 0);
+    auto out = p.getStdoutBuffer();
+    auto envs = stc::string::split(out, "\n");
+
+    size_t size = 0;
+    for (char **env = environ; *env != nullptr; env++) {
+        ++size;
+    }
+
+    INFO(out);
+    INFO(
+        "If this mismatches, it's possible a race condition bug has been reintroduced. "
+        "This largely applies if envs.size() == 0. This results in flaky behaviour here"
+    );
+    REQUIRE(
+        // +2 to account for _=/usr/bin/env, which is added by `env`, and OwO added by the test
+        envs.size() == size + 2
+    );
+    // Looks like order is guaranteed, which is neat
+    for (size_t i = 0; i < size; ++i) {
+        REQUIRE(
+            strcmp(*(environ + i), envs.at(i).c_str()) == 0
+        );
+    }
+
+    // at(size) is OwO, at(size + 1) is _=
+    REQUIRE(envs.at(size) == "OwO=x3 nuzzles pounces on you");
+}
+
 
 #endif

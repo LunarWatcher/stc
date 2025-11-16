@@ -17,10 +17,13 @@
 #include <array>
 #include <atomic>
 #include <cstdlib>
+#include <cstring>
 #include <fcntl.h>
+#include <format>
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <map>
 #include <mutex>
 #include <optional>
 #include <pty.h>
@@ -57,7 +60,8 @@ struct LowLevelWrapper {
             .revents = 0
         };
 
-        while (poll(&pdfs, nfds, 0)) {
+        // we need a small timeout here to prevent race conditions
+        while (poll(&pdfs, nfds, 10)) {
             ssize_t bytes = read(
                 fd,
                 buff.data(),
@@ -169,6 +173,13 @@ struct PTY : public LowLevelWrapper {
     }
 };
 
+/**
+ * Shorthand for creating a new pipe. Saves a few characters, does nothing special aside calling std::make_shared
+ */
+inline std::shared_ptr<Pipe> createPipe() {
+    return std::make_shared<Pipe>();
+}
+
 struct Pipes {
     std::shared_ptr<Pipe> stdoutPipe = nullptr;
     std::shared_ptr<Pipe> stderrPipe = nullptr;
@@ -186,14 +197,33 @@ struct Pipes {
         }
         return stdinPipe->writeToFd(data, stdinPipe->writeFd());
     }
+
+    /**
+     * Utility function for creating a Pipes instance where stdout and stderr are both captured. Stdin is controlled by
+     * withStdin.
+     */
+    static Pipes separate(bool withStdin = true) {
+        return Pipes {
+            createPipe(),
+            createPipe(),
+            withStdin ? createPipe() : nullptr
+        };
+    }
+    /**
+     * Utility function for creating a Pipes instance where stdout and stderr are linked. Stdin is controlled by
+     * withStdin
+     */
+    static Pipes shared(bool withStdin = true) {
+        auto outPipe = createPipe();
+        return Pipes {
+            outPipe,
+            outPipe,
+            withStdin ? createPipe() : nullptr
+        };
+
+    }
 };
 
-/**
- * Shorthand for creating a new pipe. Saves a few characters, does nothing special aside calling std::make_shared
- */
-inline std::shared_ptr<Pipe> createPipe() {
-    return std::make_shared<Pipe>();
-}
 
 /**
  * Shorthand for creating a new PTY. Saves a few characters, does nothing special aside calling std::make_shared
@@ -201,6 +231,14 @@ inline std::shared_ptr<Pipe> createPipe() {
 inline std::shared_ptr<PTY> createPTY() {
     return std::make_shared<PTY>();
 }
+
+struct Environment {
+    std::map<std::string, std::string> env;
+    /**
+     * Whether or not to start with `os.environ`. If false, nothing included in `os.environ` is forwarded.
+     */
+    bool extendEnviron = true;
+};
 
 class Process {
 protected:
@@ -217,10 +255,59 @@ protected:
     std::atomic<std::optional<bool>> exitedNormally;
     bool running = true;
 
+    char* const* createEnviron(
+        const std::optional<Environment>& env
+    ) {
+        if (env == std::nullopt) {
+            return environ;
+        }
+
+        size_t size = 0;
+        for (char **env = environ; *env != nullptr; env++) {
+            ++size;
+        }
+
+        // This is disgusting, but it beats fucking around with the real raw types. This will technically leak a vector,
+        // but it does not matter because it's disappeared once exec is called:
+        // https://stackoverflow.com/a/3617385
+        // Would prefer to do this better, but I just don't want to
+        std::vector<char*>* data = new std::vector<char*>;
+        if (env->extendEnviron && size > 0) {
+            data->assign(
+                environ, environ + size
+            );
+        }
+
+        data->reserve(
+            // Existing data or 0
+            data->size()
+            // nullptr
+            + 1
+            // Extra envs
+            + env->env.size()
+        );
+        for (const auto& [k, v] : env->env) {
+            std::string combined = std::format(
+                "{}={}", k, v
+            );
+            auto* newStr = strdup(combined.c_str());
+            if (newStr == nullptr) {
+                std::cerr << "Failed to copy string to env" << std::endl;
+                exit(69);
+            }
+            data->push_back(newStr);
+        }
+        data->push_back(nullptr);
+
+        return data->data();
+
+    }
+
     void doSpawnCommand(
         const std::vector<std::string>& command,
         const std::function<void()>& readImpl,
-        const std::function<void()>& prepDuping
+        const std::function<void()>& prepDuping,
+        const std::optional<Environment>& env
     ) {
         std::vector<const char*> convertedCommand;
 
@@ -251,8 +338,11 @@ protected:
                 }, interface.value());
             }
 
-            // TODO: allow passing environment variables
-            execv(convertedCommand.at(0), (char**) convertedCommand.data());
+            execve(
+                convertedCommand.at(0),
+                (char**) convertedCommand.data(),
+                createEnviron(env)
+            );
         } else {
             // Parent process
             if (readImpl != nullptr) {
@@ -289,10 +379,17 @@ protected:
         }
     }
 public:
-    Process(const std::vector<std::string>& command) {
-        doSpawnCommand(command, nullptr, nullptr);
+    Process(
+        const std::vector<std::string>& command,
+        const std::optional<Environment>& env = std::nullopt
+    ) {
+        doSpawnCommand(command, nullptr, nullptr, env);
     }
-    Process(const std::vector<std::string>& command, const Pipes& pipes) {
+    Process(
+        const std::vector<std::string>& command,
+        const Pipes& pipes,
+        const std::optional<Environment>& env = std::nullopt
+    ) {
         interface = pipes;
 
         doSpawnCommand(command, [this]() {
@@ -320,9 +417,13 @@ public:
                 dup2(pipes.stderrPipe->writeFd(), STDERR_FILENO);
             }
             std::get<Pipes>(*interface).die();
-        });
+        }, env);
     }
-    Process(const std::vector<std::string>& command, const std::shared_ptr<PTY>& pty) {
+    Process(
+        const std::vector<std::string>& command,
+        const std::shared_ptr<PTY>& pty,
+        const std::optional<Environment>& env = std::nullopt
+    ) {
         if (pty == nullptr) {
             throw std::runtime_error(
                 "pty cannot be null. If you don't want to attach anything, use the non-pipe/non-PTY constructor instead"
@@ -344,7 +445,7 @@ public:
             dup2(pty->slave, STDOUT_FILENO);
             dup2(pty->slave, STDERR_FILENO);
             std::get<std::shared_ptr<PTY>>(*interface)->die();
-        });
+        }, env);
 
         
     }
