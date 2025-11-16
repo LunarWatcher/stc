@@ -263,6 +263,14 @@ protected:
     std::atomic<std::optional<bool>> exitedNormally;
     bool running = true;
 
+    /**
+     * Converts an optional<Environment> to `environ`, or the provided Environment merged with environ (if extendEnviron
+     * == true). 
+     *
+     * This function should never be called outside the subprocess. It calls `new std::vector` without cleaning it up to
+     * build the environment. This is an intentional memory leak because it does not matter since the memory is
+     * disappeared shortly after due to exec(). Calling this anywhere else will cause that memory leak to be a problem.
+     */
     char* const* createEnviron(
         const std::optional<Environment>& env
     ) {
