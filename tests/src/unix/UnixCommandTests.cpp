@@ -1,9 +1,8 @@
-#include "stc/Environment.hpp"
 #if !defined(_WIN32) && !defined(__APPLE__)
 
 #include <format>
-#include <thread>
 #include <stc/StringUtil.hpp>
+#include <util/FreeEnv.hpp>
 #include "_meta/Constants.hpp"
 #include <stc/unix/Process.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -216,7 +215,7 @@ TEST_CASE("stc::Unix::Environment should merge properly with environ", "[Process
 
 TEST_CASE("stc::Unix::Environment defining existing variables shouldn't cause problems", "[Process]") {
     // Used to sneak stuff into environ()
-    stc::setEnv("__PROCESS_TEST_CASE", "not_overridden");
+    util::FreeEnv e("__PROCESS_TEST_CASE", "not_overridden");
 
     stc::Unix::Process p({
         "/usr/bin/env"
