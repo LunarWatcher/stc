@@ -251,4 +251,43 @@ TEST_CASE("stc::Unix::Environment defining existing variables shouldn't cause pr
     }
 } 
 
+TEST_CASE("Clearing buffers should work", "[Process]") {
+    stc::Unix::Process p({
+        "/usr/bin/env", "bash", "-i"
+    }, stc::Unix::Pipes::separate(true));
+
+}
+
+TEST_CASE("Not stopping a process shouldn't cause a segfault", "[Process]") {
+    std::shared_ptr<stc::Unix::Process> p;
+    std::vector<std::string> command = {
+        "/usr/bin/env", "bash", "-c", "sleep 5"
+    };
+    SECTION("Pipes") {
+        p = std::make_shared<stc::Unix::Process>(
+            command,
+            stc::Unix::Pipes::separate()
+        );
+    }
+    SECTION("PTY") {
+        p = std::make_shared<stc::Unix::Process>(
+            command,
+            stc::Unix::createPTY()
+        );
+    }
+    SECTION("Nocapture") {
+        p = std::make_shared<stc::Unix::Process>(
+            command
+        );
+    }
+
+    REQUIRE(p != nullptr); // safeguard
+    p.reset();
+    REQUIRE(p == nullptr); // safeguard
+
+    // This observationally seems to work, but not entirely sure if it's 100% reliable. 
+    // For some reason, using stop() instead of sigkill() seems to propagate a SIGTERM out of waitpid()
+    SUCCEED("If a SIGABRT is triggered, this fails");
+}
+
 #endif

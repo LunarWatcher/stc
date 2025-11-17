@@ -248,6 +248,7 @@ struct Environment {
     }
 };
 
+
 class Process {
 protected:
     std::optional<decltype(fork())> pid = std::nullopt;
@@ -262,6 +263,32 @@ protected:
     std::atomic<int> statusCode = -1;
     std::atomic<std::optional<bool>> exitedNormally;
     bool running = true;
+    
+    bool waitPid(int opts = 0) {
+        int wstatus;
+        if (!pid.has_value()) {
+            std::cerr << "waitPid called, but pid has no value. Something has gone very wrong" << std::endl;
+            exit(70);
+        }
+        if (waitpid(*pid, &wstatus, opts) > 0) {
+            if (WIFEXITED(wstatus)) {
+                statusCode = WEXITSTATUS(wstatus);
+                exitedNormally = true;
+            } else if (WIFSIGNALED(wstatus)) {
+                statusCode = WTERMSIG(wstatus);
+                exitedNormally = false;
+            } else if (WIFSTOPPED(wstatus)) {
+                statusCode = WSTOPSIG(wstatus);
+                exitedNormally = false;
+            } else {
+                std::cerr
+                    << "WARNING: stc::Unix::Process got an unknown status: " << wstatus 
+                    << std::endl;
+            }
+            return true;
+        }
+        return false;
+    }
 
     /**
      * Converts an optional<Environment> to `environ`, or the provided Environment merged with environ (if extendEnviron
@@ -389,37 +416,21 @@ protected:
     }
 
     void run(const std::function<void()>& readImpl) {
-        while (true) {
+        // TODO: readImpl should bake in some timeout here, but is that enough? Is this thread going to be too busy?
+        do {
             readImpl();
-
-            int wstatus;
-            if (waitpid(*pid, &wstatus, WNOHANG)) {
-                if (WIFEXITED(wstatus)) {
-                    statusCode = WEXITSTATUS(wstatus);
-                    exitedNormally = true;
-                } else if (WIFSIGNALED(wstatus)) {
-                    statusCode = WTERMSIG(wstatus);
-                    exitedNormally = false;
-                } else if (WIFSTOPPED(wstatus)) {
-                    statusCode = WSTOPSIG(wstatus);
-                    exitedNormally = false;
-                } else {
-                    std::cerr
-                        << "WARNING: stc::Unix::Process got an unknown exit type. Cannot set exit code" 
-                        << std::endl;
-                    exitedNormally = false;
-                }
-                break;
-            }
-        }
+        } while (!waitPid(WNOHANG));
     }
 public:
+    [[nodiscard("Discarding immediately terminates the process. You probably don't want this")]]
     Process(
         const std::vector<std::string>& command,
         const std::optional<Environment>& env = std::nullopt
     ) {
         doSpawnCommand(command, nullptr, nullptr, env);
     }
+
+    [[nodiscard("Discarding immediately terminates the process. You probably don't want this")]]
     Process(
         const std::vector<std::string>& command,
         const Pipes& pipes,
@@ -454,6 +465,8 @@ public:
             std::get<Pipes>(*interface).die();
         }, env);
     }
+
+    [[nodiscard("Discarding immediately terminates the process. You probably don't want this")]]
     Process(
         const std::vector<std::string>& command,
         const std::shared_ptr<PTY>& pty,
@@ -486,7 +499,8 @@ public:
     }
 
     virtual ~Process() {
-        stop();
+        this->sigkill();
+        this->block();
     }
 
     /**
@@ -529,6 +543,16 @@ public:
     }
 
     /**
+     * Wipes the content of both stdoutBuff and stderrBuff without returning the contents.
+     * To also get the content of the buffers, use getStderrBuffer and getStdoutBuffer, and pass reset = true.
+     */
+    void resetBuffers() {
+        std::lock_guard g(lock);
+        stderrBuff = {};
+        stdoutBuff = {};
+    }
+
+    /**
      * Used to write to stdin.
      *
      * \returns the number of bytes written. This does not have to be used for anything, as it's mainly intended for use
@@ -562,10 +586,16 @@ public:
             }
             return statusCode;
         } else {
-            int statusResult;
-            waitpid(*pid, &statusResult, 0);
-            statusCode = WEXITSTATUS(statusResult);
+            waitPid();
             return statusCode;
+        }
+    }
+
+    void signal(int sig) {
+        if (statusCode == -1) {
+            if (pid.has_value() && *pid > 0) {
+                kill(*pid, sig);
+            }
         }
     }
 
@@ -573,9 +603,7 @@ public:
      * Sends sigterm to the process.
      */
     void stop() {
-        if (statusCode == -1) {
-            kill(*pid, SIGTERM);
-        }
+        signal(SIGTERM);
     }
 
     /**
@@ -583,9 +611,7 @@ public:
      * the child process, which isn't always acceptable.
      */
     void sigkill() {
-        if (statusCode == -1) {
-            kill(*pid, SIGKILL);
-        }
+        signal(SIGKILL);
     }
 
     void closeStdin() {
