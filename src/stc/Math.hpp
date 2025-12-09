@@ -102,7 +102,6 @@ inline IT isPointOnLeftOfEdge(
  *
  * For inclusive intersects, use stc::math::g2d::lineIntersectsLineInclusive
  *
- * \see https://bryceboe.com/2006/10/23/line-segment-intersection-algorithm/
  */
 template <typename IT, VectorType2D<IT> VT>
 inline bool lineIntersectsLineExclusive(
@@ -111,7 +110,7 @@ inline bool lineIntersectsLineExclusive(
     const VT& l2Start,
     const VT& l2End
 ) {
-    if (l1Start == l2Start && l1End == l2End) {
+    if (l1Start == l2Start || l1End == l2End || l1Start == l2End || l2Start == l1End) {
         return false;
     }
     return isCounterClockwise<IT, VT>(l1Start, l2Start, l2End) != isCounterClockwise<IT, VT>(l1End, l2Start, l2End)

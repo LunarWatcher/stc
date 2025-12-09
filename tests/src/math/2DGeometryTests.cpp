@@ -22,6 +22,22 @@ TEST_CASE("Line-line intersection", "[2D geometry][Math]") {
                 Vec2 {10, 0}
             )
         );
+        REQUIRE_FALSE(
+            stc::math::g2d::lineIntersectsLineExclusive<int64_t>(
+                Vec2 { 9, 5 },
+                Vec2 { 2, 5 },
+                Vec2 { 2, 5 },
+                Vec2 { 2, 3 }
+            )
+        );
+        REQUIRE_FALSE(
+            stc::math::g2d::lineIntersectsLineExclusive<int64_t>(
+                Vec2 { 0, 0 },
+                Vec2 {0, 10},
+                Vec2 {0, 10},
+                Vec2 {10, 10}
+            )
+        );
         REQUIRE(
             stc::math::g2d::lineIntersectsLineExclusive<int64_t>(
                 Vec2 {-1, 1},
@@ -73,6 +89,14 @@ TEST_CASE("Line-line intersection", "[2D geometry][Math]") {
                 Vec2 {10, 0},
                 Vec2 {0, 0},
                 Vec2 {10, 0}
+            )
+        );
+        REQUIRE(
+            stc::math::g2d::lineIntersectsLineInclusive<int64_t>(
+                Vec2 { 0, 0 },
+                Vec2 {0, 10},
+                Vec2 {0, 10},
+                Vec2 {10, 10}
             )
         );
         REQUIRE(
