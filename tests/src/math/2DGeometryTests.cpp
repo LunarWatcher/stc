@@ -189,7 +189,7 @@ TEST_CASE("Sidedness", "[2D geometry][Math]") {
     );
 }
 
-TEST_CASE("Point in rectangle", "[2D geometry][Math]") {
+TEST_CASE("Point in 4-point rectangle", "[2D geometry][Math]") {
     SECTION("Exclusive") {
         REQUIRE_FALSE(
             stc::math::g2d::rectangleContainsPointExclusive<int64_t>(
@@ -214,5 +214,76 @@ TEST_CASE("Point in rectangle", "[2D geometry][Math]") {
             )
         );
 
+    }
+}
+
+TEST_CASE("Point in 2-point rectangle", "[2D geometry][Math]") {
+    SECTION("Exclusive") {
+
+        REQUIRE_FALSE(
+            stc::math::g2d::rectangleContainsPointExclusive<int64_t>(
+                Vec2 { 11, 1 },
+
+                Vec2 { 9, 5 },
+                Vec2 { 2, 3 }
+            )
+        );
+        REQUIRE_FALSE(
+            stc::math::g2d::rectangleContainsPointExclusive<int64_t>(
+                Vec2 { 9, 4 },
+
+                Vec2 { 9, 5 },
+                Vec2 { 2, 3 }
+            )
+        );
+        REQUIRE(
+            stc::math::g2d::rectangleContainsPointExclusive<int64_t>(
+                Vec2 { 4, 4 },
+
+                Vec2 { 9, 5 },
+                Vec2 { 2, 3 }
+            )
+        );
+    }
+    SECTION("Inclusive") {
+
+        REQUIRE_FALSE(
+            stc::math::g2d::rectangleContainsPointInclusive<int64_t>(
+                Vec2 { 11, 1 },
+
+                Vec2 { 9, 5 },
+                Vec2 { 2, 3 }
+            )
+        );
+        REQUIRE(
+            stc::math::g2d::rectangleContainsPointInclusive<int64_t>(
+                Vec2 { 9, 4 },
+
+                Vec2 { 9, 5 },
+                Vec2 { 2, 3 }
+            )
+        );
+        REQUIRE(
+            stc::math::g2d::rectangleContainsPointInclusive<int64_t>(
+                Vec2 { 4, 4 },
+
+                Vec2 { 9, 5 },
+                Vec2 { 2, 3 }
+            )
+        );
+    }
+
+    for (int64_t x = 2; x <= 9; ++x) {
+        for (int64_t y = 3; y < 5; ++y) {
+            INFO("x=" << x << ", y=" << y);
+            REQUIRE(
+                stc::math::g2d::rectangleContainsPointInclusive<int64_t>(
+                    Vec2 { x, y },
+
+                    Vec2 { 9, 5 },
+                    Vec2 { 2, 3 }
+                )
+            );
+        }
     }
 }

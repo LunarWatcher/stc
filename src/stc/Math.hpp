@@ -226,6 +226,20 @@ inline bool lineIntersectsRectangleInclusive(
     );
 }
 
+/**
+ * Checks whether or not a rectangle contains a given point.
+ *
+ * Note that the input arguments are in the form
+ * ```
+ *   (B) #------# (D)
+ *       |      |
+ *   (A) #------# (C)
+ * ```
+ *
+ * Also note that there's no requirement each corner is in that exact position.
+ *
+ * This is an exclusive function, so points on the border are not included.
+ */
 template <std::signed_integral IT, VectorType2D<IT> VT>
 inline bool rectangleContainsPointExclusive(
     const VT& point,
@@ -250,6 +264,21 @@ inline bool rectangleContainsPointExclusive(
         ) > 0;
 }
 
+
+/**
+ * Checks whether or not a rectangle contains a given point.
+ *
+ * Note that the input arguments are in the form
+ * ```
+ *   (B) #------# (D)
+ *       |      |
+ *   (A) #------# (C)
+ * ```
+ *
+ * Also note that there's no requirement each corner is in that exact position.
+ *
+ * This is an inclusive function, so points on the border are included.
+ */
 template <std::signed_integral IT, VectorType2D<IT> VT>
 inline bool rectangleContainsPointInclusive(
     const VT& point,
@@ -273,6 +302,52 @@ inline bool rectangleContainsPointInclusive(
             point, rectCornerD, rectCornerC
         ) >= 0;
 }
+
+
+/**
+ * Checks if an axis-aligned rectangle contains a provided point. 
+ * The input assumes a rectangle defined by two opposing corners.
+ * 
+ * This function is exclusive, and excludes points on the border.
+ */
+template <std::signed_integral IT, VectorType2D<IT> VT>
+inline bool rectangleContainsPointExclusive(
+    const VT& point,
+
+    const VT& startPosition,
+    const VT& endPosition
+) {
+    auto right = std::max(startPosition.x, endPosition.x);
+    auto left = std::min(startPosition.x, endPosition.x);
+    auto bottom = std::min(startPosition.y, endPosition.y);
+    auto top = std::max(startPosition.y, endPosition.y);
+
+    return left < point.x && point.x < right
+        && bottom < point.y && point.y < top;
+}
+
+/**
+ * Checks if an axis-aligned rectangle contains a provided point. 
+ * The input assumes a rectangle defined by two opposing corners.
+ * 
+ * This function is inclusive, and excludes points on the border.
+ */
+template <std::signed_integral IT, VectorType2D<IT> VT>
+inline bool rectangleContainsPointInclusive(
+    const VT& point,
+
+    const VT& startPosition,
+    const VT& endPosition
+) {
+    auto right = std::max(startPosition.x, endPosition.x);
+    auto left = std::min(startPosition.x, endPosition.x);
+    auto bottom = std::min(startPosition.y, endPosition.y);
+    auto top = std::max(startPosition.y, endPosition.y);
+
+    return left <= point.x && point.x <= right
+        && bottom <= point.y && point.y <= top;
+}
+
 
 }
 
