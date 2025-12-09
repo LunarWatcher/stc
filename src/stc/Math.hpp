@@ -102,6 +102,8 @@ inline IT isPointOnLeftOfEdge(
  *
  * For inclusive intersects, use stc::math::g2d::lineIntersectsLineInclusive
  *
+ * \see https://web.archive.org/web/20170517111501/http://jeffe.cs.illinois.edu/teaching/373/notes/x06-sweepline.pdf
+ * \see https://web.archive.org/web/20250916142823/https://bryceboe.com/2006/10/23/line-segment-intersection-algorithm/
  */
 template <typename IT, VectorType2D<IT> VT>
 inline bool lineIntersectsLineExclusive(
@@ -110,6 +112,14 @@ inline bool lineIntersectsLineExclusive(
     const VT& l2Start,
     const VT& l2End
 ) {
+    if (
+        l1Start == l1End
+        || l1End == l2Start
+        || l2Start == l1Start
+    ) {
+        return false;
+    }
+    // Degenerate case: either bou
     return (isCounterClockwise<IT, VT>(l1Start, l2Start, l2End) != isCounterClockwise<IT, VT>(l1End, l2Start, l2End)
         && isCounterClockwise<IT, VT>(l1Start, l1End, l2Start) != isCounterClockwise<IT, VT>(l1Start, l1End, l2End)
     );
@@ -117,6 +127,9 @@ inline bool lineIntersectsLineExclusive(
 
 /**
  * Equivalent to stc::math::g2d::lineIntersects, but also counts points on the line.
+ *
+ * \see https://web.archive.org/web/20170517111501/http://jeffe.cs.illinois.edu/teaching/373/notes/x06-sweepline.pdf
+ * \see https://web.archive.org/web/20250916142823/https://bryceboe.com/2006/10/23/line-segment-intersection-algorithm/
  */
 template <typename IT, VectorType2D<IT> VT>
     requires std::equality_comparable_with<VT, VT>
