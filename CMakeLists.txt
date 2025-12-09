@@ -35,7 +35,11 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     add_subdirectory(tests)
     add_subdirectory(demos)
     add_custom_target(test
-        COMMAND tests ${ALUI_TEST_OPTIONS}
+        COMMAND tests --skip-benchmarks
+        DEPENDS tests
+        COMMENT "Compile and run tests")
+    add_custom_target(bench
+        COMMAND tests "[benchmark]"
         DEPENDS tests
         COMMENT "Compile and run tests")
 

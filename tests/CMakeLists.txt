@@ -8,7 +8,11 @@ add_executable(tests
     src/StdFixTests.cpp
     src/StringUtilTests.cpp
 
+    src/bench/MathBench.cpp
+
     src/extra-modules/test/CaptureStreamTests.cpp
+
+    src/math/2DGeometryTests.cpp
 
     src/unix/UnixCommandTests.cpp
 
