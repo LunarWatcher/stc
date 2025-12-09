@@ -77,7 +77,8 @@ inline bool isCounterClockwise(const VT& a, const VT& b, const VT& c) {
 /**
  * Returns whether or not a point is on the left of an edge
  *
- * \returns > 0 if on the left, 0 if on the edge, < 0 if on the right. 
+ * \returns > 0 if on the left, 0 if on the edge, < 0 if on the right. This is based on the direction of the vector, so
+ *          be careful when using in other functions
  */
 template <std::signed_integral IT, VectorType2D<IT> VT>
 inline IT isPointOnLeftOfEdge(
@@ -239,13 +240,13 @@ inline bool rectangleContainsPointExclusive(
             point, rectCornerA, rectCornerB
         ) > 0
         && isPointOnLeftOfEdge<IT, VT>(
-            point, rectCornerA, rectCornerC
+            point, rectCornerC, rectCornerA
         ) > 0
         && isPointOnLeftOfEdge<IT, VT>(
             point, rectCornerB, rectCornerD
         ) > 0
         && isPointOnLeftOfEdge<IT, VT>(
-            point, rectCornerC, rectCornerD
+            point, rectCornerD, rectCornerC
         ) > 0;
 }
 
@@ -263,13 +264,13 @@ inline bool rectangleContainsPointInclusive(
             point, rectCornerA, rectCornerB
         ) >= 0
         && isPointOnLeftOfEdge<IT, VT>(
-            point, rectCornerA, rectCornerC
+            point, rectCornerC, rectCornerA
         ) >= 0
         && isPointOnLeftOfEdge<IT, VT>(
             point, rectCornerB, rectCornerD
         ) >= 0
         && isPointOnLeftOfEdge<IT, VT>(
-            point, rectCornerC, rectCornerD
+            point, rectCornerD, rectCornerC
         ) >= 0;
 }
 

@@ -11,31 +11,35 @@ TEST_CASE("Math benchmarks", "[benchmark]") {
 
             Vec2 { 0, 5 },
             Vec2 { 6, -1 },
-            Vec2 { 12, 5 },
-            Vec2 { 6, 12 }
+            Vec2 { 6, 12 },
+            Vec2 { 12, 5 }
         );
     };
 }
 
 TEST_CASE("rectangleContainsPoint benchmark correctness") {
-    REQUIRE(
-        stc::math::g2d::rectangleContainsPointInclusive<int64_t>( 
-            Vec2 { 5, 5 },
+    SECTION("Inclusive") {
+        REQUIRE(
+            stc::math::g2d::rectangleContainsPointInclusive<int64_t>( 
+                Vec2 { 5, 5 },
 
-            Vec2 { 0, 5 },
-            Vec2 { 6, -1 },
-            Vec2 { 12, 5 },
-            Vec2 { 6, 12 }
-        )
-    );
-    REQUIRE_FALSE(
-        stc::math::g2d::rectangleContainsPointExclusive<int64_t>( 
-            Vec2 { 5, 5 },
+                Vec2 { 0, 5 },
+                Vec2 { 6, -1 },
+                Vec2 { 6, 12 },
+                Vec2 { 12, 5 }
+            )
+        );
+    }
+    SECTION("Exclusive") {
+        REQUIRE(
+            stc::math::g2d::rectangleContainsPointExclusive<int64_t>( 
+                Vec2 { 5, 5 },
 
-            Vec2 { 0, 5 },
-            Vec2 { 6, -1 },
-            Vec2 { 12, 5 },
-            Vec2 { 6, 12 }
-        )
-    );
+                Vec2 { 0, 5 },
+                Vec2 { 6, -1 },
+                Vec2 { 6, 12 },
+                Vec2 { 12, 5 }
+            )
+        );
+    }
 }

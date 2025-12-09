@@ -47,6 +47,7 @@ TEST_CASE("Line-line intersection", "[2D geometry][Math]") {
                 Vec2 { 12, 6}
             )
         );
+
     }
 
     SECTION("Inclusive") {
@@ -127,6 +128,18 @@ TEST_CASE("Line-Rectangle intersection", "[2D geometry][Math]") {
                 Vec2 { 10, 10 }
             )
         );
+
+        REQUIRE_FALSE(
+            stc::math::g2d::lineIntersectsRectangleExclusive<int64_t>(
+                Vec2 { 11, 1 },
+                Vec2 { 11, 7 },
+
+                Vec2 { 9, 5 },
+                Vec2 { 9, 3 },
+                Vec2 { 2, 5 },
+                Vec2 { 2, 3 }
+            )
+        );
     }
     SECTION("Inclusive") {
         REQUIRE(
@@ -154,32 +167,52 @@ TEST_CASE("Line-Rectangle intersection", "[2D geometry][Math]") {
     }
 }
 
+TEST_CASE("Sidedness", "[2D geometry][Math]") {
+    REQUIRE(
+        stc::math::g2d::isPointOnLeftOfEdge<int64_t>(
+            Vec2 { 0, 3 },
+            Vec2 { -3, 0 },
+            Vec2 {3, 0}
+        )
+        == -stc::math::g2d::isPointOnLeftOfEdge<int64_t>(
+            Vec2 { 0, 3 },
+            Vec2 {3, 0},
+            Vec2 { -3, 0 }
+        )
+    );
+    REQUIRE(
+        stc::math::g2d::isPointOnLeftOfEdge<int64_t>(
+            Vec2 { 11, 1 },
+            Vec2 { 2, 3 },
+            Vec2 { 9, 3 }
+        ) < 0
+    );
+}
+
 TEST_CASE("Point in rectangle", "[2D geometry][Math]") {
     SECTION("Exclusive") {
         REQUIRE_FALSE(
-            stc::math::g2d::lineIntersectsRectangleExclusive<int64_t>(
-                Vec2 { 8, 5 },
-                Vec2 { 11, 8 },
+            stc::math::g2d::rectangleContainsPointExclusive<int64_t>(
+                Vec2 { 11, 1 },
 
-                Vec2 { 10, 10 },
-                Vec2 { 12, 6},
-                Vec2 { 14, 12 },
-                Vec2 { 17, 8 }
-            )
-        );
-        REQUIRE(
-            stc::math::g2d::lineIntersectsRectangleInclusive<int64_t>(
-                Vec2 { 8, 5 },
-                Vec2 { 11, 8 },
-
-                Vec2 { 10, 10 },
-                Vec2 { 12, 6},
-                Vec2 { 14, 12 },
-                Vec2 { 17, 8 }
+                Vec2 { 9, 5 },
+                Vec2 { 9, 3 },
+                Vec2 { 2, 5 },
+                Vec2 { 2, 3 }
             )
         );
     }
     SECTION("Inclusive") {
+        REQUIRE_FALSE(
+            stc::math::g2d::rectangleContainsPointInclusive<int64_t>(
+                Vec2 { 11, 1 },
+
+                Vec2 { 9, 5 },
+                Vec2 { 2, 5 },
+                Vec2 { 9, 3 },
+                Vec2 { 2, 3 }
+            )
+        );
 
     }
 }
