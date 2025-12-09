@@ -110,11 +110,9 @@ inline bool lineIntersectsLineExclusive(
     const VT& l2Start,
     const VT& l2End
 ) {
-    if (l1Start == l2Start || l1End == l2End || l1Start == l2End || l2Start == l1End) {
-        return false;
-    }
-    return isCounterClockwise<IT, VT>(l1Start, l2Start, l2End) != isCounterClockwise<IT, VT>(l1End, l2Start, l2End)
-        && isCounterClockwise<IT, VT>(l1Start, l1End, l2Start) != isCounterClockwise<IT, VT>(l1Start, l1End, l2End);
+    return (isCounterClockwise<IT, VT>(l1Start, l2Start, l2End) != isCounterClockwise<IT, VT>(l1End, l2Start, l2End)
+        && isCounterClockwise<IT, VT>(l1Start, l1End, l2Start) != isCounterClockwise<IT, VT>(l1Start, l1End, l2End)
+    );
 }
 
 /**
