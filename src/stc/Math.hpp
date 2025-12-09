@@ -112,14 +112,16 @@ inline bool lineIntersectsLineExclusive(
     const VT& l2Start,
     const VT& l2End
 ) {
+    // Degenerate case: either of the two are bounded on the ends.
+    // This function excludes these cases
     if (
         l1Start == l1End
         || l1End == l2Start
+        || l1End == l2End
         || l2Start == l1Start
     ) {
         return false;
     }
-    // Degenerate case: either bou
     return (isCounterClockwise<IT, VT>(l1Start, l2Start, l2End) != isCounterClockwise<IT, VT>(l1End, l2Start, l2End)
         && isCounterClockwise<IT, VT>(l1Start, l1End, l2Start) != isCounterClockwise<IT, VT>(l1Start, l1End, l2End)
     );
