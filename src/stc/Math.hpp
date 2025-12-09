@@ -137,7 +137,7 @@ inline bool lineIntersectsLineInclusive(
 }
 
 /**
- * Checks if a line intersects a square.
+ * Checks if a line intersects a rectangle.
  *
  * Note that the input arguments are in the form
  * ```
@@ -182,7 +182,7 @@ inline bool lineIntersectsRectangleExclusive(
 
 
 /**
- * Checks if a line intersects a square.
+ * Checks if a line intersects a rectangle.
  *
  * Note that the input arguments are in the form
  * ```
@@ -330,7 +330,7 @@ inline bool rectangleContainsPointExclusive(
  * Checks if an axis-aligned rectangle contains a provided point. 
  * The input assumes a rectangle defined by two opposing corners.
  * 
- * This function is inclusive, and excludes points on the border.
+ * This function is inclusive, and includes points on the border.
  */
 template <std::signed_integral IT, VectorType2D<IT> VT>
 inline bool rectangleContainsPointInclusive(
