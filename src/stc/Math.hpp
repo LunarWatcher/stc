@@ -115,10 +115,10 @@ inline bool lineIntersectsLineExclusive(
     // Degenerate case: either of the two are bounded on the ends.
     // This function excludes these cases
     if (
-        l1Start == l1End
+        l1Start == l2End
+        || l1Start == l2Start
         || l1End == l2Start
         || l1End == l2End
-        || l2Start == l1Start
     ) {
         return false;
     }
