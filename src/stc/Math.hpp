@@ -94,40 +94,6 @@ inline IT isPointOnLeftOfEdge(
 }
 
 /**
- * Checks if two arbitrary lines intersect.
- * Note that this method does not consider the start and end points as an intersection. This leads to two fun consequences:
- *
- * 1. If line1 == line2, this returns false. 
- * 2. If line1.start == line2.start (or equivalent for arbitrary permutations of start and end), this method returns false.
- *
- * For inclusive intersects, use stc::math::g2d::lineIntersectsLineInclusive
- *
- * \see https://web.archive.org/web/20170517111501/http://jeffe.cs.illinois.edu/teaching/373/notes/x06-sweepline.pdf
- * \see https://web.archive.org/web/20250916142823/https://bryceboe.com/2006/10/23/line-segment-intersection-algorithm/
- */
-template <typename IT, VectorType2D<IT> VT>
-inline bool lineIntersectsLineExclusive(
-    const VT& l1Start,
-    const VT& l1End,
-    const VT& l2Start,
-    const VT& l2End
-) {
-    if (
-        l1Start == l2End
-        || l1Start == l2Start
-        || l1End == l2Start
-        || l1End == l2End
-        || isPointOnLeftOfEdge<IT, VT>(l1Start, l2Start, l2End) == 0
-        || isPointOnLeftOfEdge<IT, VT>(l1End, l2Start, l2End) == 0
-    ) {
-        return false;
-    }
-    return (isCounterClockwise<IT, VT>(l1Start, l2Start, l2End) != isCounterClockwise<IT, VT>(l1End, l2Start, l2End)
-        && isCounterClockwise<IT, VT>(l1Start, l1End, l2Start) != isCounterClockwise<IT, VT>(l1Start, l1End, l2End)
-    );
-}
-
-/**
  * Equivalent to stc::math::g2d::lineIntersects, but also counts points on the line.
  *
  * \see https://web.archive.org/web/20170517111501/http://jeffe.cs.illinois.edu/teaching/373/notes/x06-sweepline.pdf
@@ -147,51 +113,6 @@ inline bool lineIntersectsLineInclusive(
         || isPointOnLeftOfEdge<IT, VT>(l1Start, l2Start, l2End) == 0
         || isPointOnLeftOfEdge<IT, VT>(l1End, l2Start, l2End) == 0;
 }
-
-/**
- * Checks if a line intersects a rectangle.
- *
- * Note that the input arguments are in the form
- * ```
- *   (B) #------# (D)
- *       |      |
- *   (A) #------# (C)
- * ```
- * 
- * Meaning the segments AB, AC, BD, CD are checked. The orientation is irrelevant as long as you provide the arguments
- * in an order that meets these constraints.
- *
- * This function is exclusive, meaning tangential lines (including lines on the borders) is not considered an
- * intersection. For tangential lines to be included, use stc::math::g2d::lineIntersectsRectangleInclusive. 
- * 
- * Nether of the functions check if the line is contained within the rectangle. Use stc::math::g2d::rectangleContains to
- * check point inclusion.
- */
-template <typename IT, VectorType2D<IT> VT>
-inline bool lineIntersectsRectangleExclusive(
-    const VT& lineStart,
-    const VT& lineEnd,
-
-    const VT& rectCornerA,
-    const VT& rectCornerB,
-    const VT& rectCornerC,
-    const VT& rectCornerD
-) {
-    return lineIntersectsLineExclusive<IT, VT>(
-        lineStart, lineEnd,
-        rectCornerA, rectCornerB
-    ) || lineIntersectsLineExclusive<IT, VT>(
-        lineStart, lineEnd,
-        rectCornerA, rectCornerC
-    ) || lineIntersectsLineExclusive<IT, VT>(
-        lineStart, lineEnd,
-        rectCornerB, rectCornerD
-    ) || lineIntersectsLineExclusive<IT, VT>(
-        lineStart, lineEnd,
-        rectCornerC, rectCornerD
-    );
-}
-
 
 /**
  * Checks if a line intersects a rectangle.
