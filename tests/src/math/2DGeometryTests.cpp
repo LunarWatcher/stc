@@ -232,6 +232,17 @@ TEST_CASE("Common expected line intersections on a 2-point rectangle") {
             false,
             { {2, 30}, {2, 10}, {1, 0}, {5, 4} }
         },
+
+        {
+            "Vertical line strike-through",
+            true,
+            { {2, -1}, {2, 10}, {1, 0}, {5, 4} }
+        },
+        {
+            "Horizontal line strike-through",
+            true,
+            { {0, 2}, {10, 2}, {1, 0}, {5, 4} }
+        },
     };
 
     for (auto& [name, expected, args] : cases) {
