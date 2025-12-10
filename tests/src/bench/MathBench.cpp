@@ -24,8 +24,8 @@ TEST_CASE("rectangleContainsPoint benchmark correctness") {
 
             Vec2 { 0, 5 },
             Vec2 { 6, -1 },
-            Vec2 { 6, 12 },
-            Vec2 { 12, 5 }
+            Vec2 { 12, 5 },
+            Vec2 { 6, 12 }
         )
     );
 }

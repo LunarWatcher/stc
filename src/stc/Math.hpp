@@ -30,7 +30,13 @@
 
 #include <cmath>
 #include <concepts>
+#include <stdexcept>
 
+/*
+ * TODO:
+ * * Check if it makes more sense to do triangle checks rather than raw rect checks. This might also be more
+ *      generalisable?
+ */
 namespace stc::math {
 
 /**
@@ -47,6 +53,11 @@ concept VectorType3D = requires (const VT& val) {
     { val.x } -> std::convertible_to<IT>;
     { val.y } -> std::convertible_to<IT>;
     { val.z } -> std::convertible_to<IT>;
+};
+
+template <typename IT>
+concept SignedNumber = requires {
+    std::is_signed_v<IT>;
 };
 
 /**
@@ -80,7 +91,7 @@ inline bool isCounterClockwise(const VT& a, const VT& b, const VT& c) {
  * \returns > 0 if on the left, 0 if on the edge, < 0 if on the right. This is based on the direction of the vector, so
  *          be careful when using in other functions
  */
-template <std::signed_integral IT, VectorType2D<IT> VT>
+template <SignedNumber IT, VectorType2D<IT> VT>
 inline IT isPointOnLeftOfEdge(
     const VT& point,
     const VT& lineStart,
@@ -119,13 +130,11 @@ inline bool lineIntersectsLineInclusive(
  *
  * Note that the input arguments are in the form
  * ```
- *   (B) #------# (D)
+ *   (B) #------# (C)
  *       |      |
- *   (A) #------# (C)
+ *   (A) #------# (D)
  * ```
  * 
- * Meaning the segments AB, AC, BD, CD are checked. The orientation is irrelevant as long as you provide the arguments
- * in an order that meets these constraints.
  *
  * This function is inclusive, meaning tangential lines (including lines on the borders) are considered an
  * intersection. For tangential lines not to be included, use stc::math::g2d::lineIntersectsRectangleExclusive. 
@@ -149,13 +158,13 @@ inline bool lineIntersectsRectangleInclusive(
         rectCornerA, rectCornerB
     ) || lineIntersectsLineInclusive<IT, VT>(
         lineStart, lineEnd,
-        rectCornerA, rectCornerC
-    ) || lineIntersectsLineInclusive<IT, VT>(
-        lineStart, lineEnd,
-        rectCornerB, rectCornerD
+        rectCornerB, rectCornerC
     ) || lineIntersectsLineInclusive<IT, VT>(
         lineStart, lineEnd,
         rectCornerC, rectCornerD
+    ) || lineIntersectsLineInclusive<IT, VT>(
+        lineStart, lineEnd,
+        rectCornerD, rectCornerA
     );
 }
 
@@ -164,16 +173,16 @@ inline bool lineIntersectsRectangleInclusive(
  *
  * Note that the input arguments are in the form
  * ```
- *   (B) #------# (D)
+ *   (B) #------# (C)
  *       |      |
- *   (A) #------# (C)
+ *   (A) #------# (D)
  * ```
  *
  * Also note that there's no requirement each corner is in that exact position.
  *
  * This is an exclusive function, so points on the border are not included.
  */
-template <std::signed_integral IT, VectorType2D<IT> VT>
+template <SignedNumber IT, VectorType2D<IT> VT>
 inline bool rectangleContainsPointExclusive(
     const VT& point,
 
@@ -187,13 +196,13 @@ inline bool rectangleContainsPointExclusive(
             point, rectCornerA, rectCornerB
         ) > 0
         && isPointOnLeftOfEdge<IT, VT>(
-            point, rectCornerC, rectCornerA
+            point, rectCornerB, rectCornerC
         ) > 0
         && isPointOnLeftOfEdge<IT, VT>(
-            point, rectCornerB, rectCornerD
+            point, rectCornerC, rectCornerD
         ) > 0
         && isPointOnLeftOfEdge<IT, VT>(
-            point, rectCornerD, rectCornerC
+            point, rectCornerD, rectCornerA
         ) > 0;
 }
 
@@ -203,16 +212,16 @@ inline bool rectangleContainsPointExclusive(
  *
  * Note that the input arguments are in the form
  * ```
- *   (B) #------# (D)
+ *   (B) #------# (C)
  *       |      |
- *   (A) #------# (C)
+ *   (A) #------# (D)
  * ```
  *
  * Also note that there's no requirement each corner is in that exact position.
  *
  * This is an inclusive function, so points on the border are included.
  */
-template <std::signed_integral IT, VectorType2D<IT> VT>
+template <SignedNumber IT, VectorType2D<IT> VT>
 inline bool rectangleContainsPointInclusive(
     const VT& point,
 
@@ -226,13 +235,13 @@ inline bool rectangleContainsPointInclusive(
             point, rectCornerA, rectCornerB
         ) >= 0
         && isPointOnLeftOfEdge<IT, VT>(
-            point, rectCornerC, rectCornerA
+            point, rectCornerB, rectCornerC
         ) >= 0
         && isPointOnLeftOfEdge<IT, VT>(
-            point, rectCornerB, rectCornerD
+            point, rectCornerC, rectCornerD
         ) >= 0
         && isPointOnLeftOfEdge<IT, VT>(
-            point, rectCornerD, rectCornerC
+            point, rectCornerD, rectCornerA
         ) >= 0;
 }
 
@@ -241,31 +250,9 @@ inline bool rectangleContainsPointInclusive(
  * Checks if an axis-aligned rectangle contains a provided point. 
  * The input assumes a rectangle defined by two opposing corners.
  * 
- * This function is exclusive, and excludes points on the border.
- */
-template <std::signed_integral IT, VectorType2D<IT> VT>
-inline bool rectangleContainsPointExclusive(
-    const VT& point,
-
-    const VT& startPosition,
-    const VT& endPosition
-) {
-    auto right = std::max(startPosition.x, endPosition.x);
-    auto left = std::min(startPosition.x, endPosition.x);
-    auto bottom = std::min(startPosition.y, endPosition.y);
-    auto top = std::max(startPosition.y, endPosition.y);
-
-    return left < point.x && point.x < right
-        && bottom < point.y && point.y < top;
-}
-
-/**
- * Checks if an axis-aligned rectangle contains a provided point. 
- * The input assumes a rectangle defined by two opposing corners.
- * 
  * This function is inclusive, and includes points on the border.
  */
-template <std::signed_integral IT, VectorType2D<IT> VT>
+template <typename IT, VectorType2D<IT> VT>
 inline bool rectangleContainsPointInclusive(
     const VT& point,
 
@@ -281,6 +268,117 @@ inline bool rectangleContainsPointInclusive(
         && bottom <= point.y && point.y <= top;
 }
 
+/**
+ * Checks if an axis-aligned rectangle is intersected by a line. 
+ * The input assumes a rectangle defined by two opposing corners.
+ * 
+ * This function is inclusive, and includes points on the border.
+ */
+template <SignedNumber IT, VectorType2D<IT> VT>
+inline bool lineIntersectsRectangleInclusive(
+    const VT& lineStart,
+    const VT& lineEnd,
+
+    const VT& rectStart,
+    const VT& rectEnd
+) {
+    auto right = std::max(rectStart.x, rectEnd.x);
+    auto left = std::min(rectStart.x, rectEnd.x);
+    auto bottom = std::min(rectStart.y, rectEnd.y);
+    auto top = std::max(rectStart.y, rectEnd.y);
+
+    if (lineStart.x == lineEnd.x) {
+        // Vertical line
+        if (lineStart.x > right || lineStart.x < left) {
+            return false;
+        } 
+
+        auto minY = std::min(lineStart.y, lineEnd.y);
+        auto maxY = std::max(lineStart.y, lineEnd.y);
+
+        if (
+            (minY > top && maxY > top)
+            || (minY < bottom && maxY < bottom)
+        ) {
+            return false;
+        }
+        return true;
+    } else if (lineStart.y == lineEnd.y) {
+        // Horizontal line
+        if (lineStart.y > top || lineStart.y < bottom) {
+            return false;
+        }
+
+        auto minX = std::min(lineStart.x, lineEnd.x);
+        auto maxX = std::max(lineStart.x, lineEnd.x);
+
+        if (
+            (minX > right && maxX > right)
+            || (minX < left && maxX < left)
+        ) {
+            return false;
+        }
+        return true;
+    } else {
+        throw std::runtime_error("Diagonal lines are not yet implemented");
+    }
+}
+
+/**
+ * Checks if an axis-aligned rectangle is intersected by a line. 
+ * The input assumes a rectangle defined by two opposing corners.
+ * 
+ * This function is inclusive, and includes points on the border.
+ */
+template <SignedNumber IT, VectorType2D<IT> VT>
+inline bool lineIntersectsRectangleExclusive(
+    const VT& lineStart,
+    const VT& lineEnd,
+
+    const VT& rectStart,
+    const VT& rectEnd
+) {
+    auto right = std::max(rectStart.x, rectEnd.x);
+    auto left = std::min(rectStart.x, rectEnd.x);
+    auto bottom = std::min(rectStart.y, rectEnd.y);
+    auto top = std::max(rectStart.y, rectEnd.y);
+
+    if (lineStart.x == lineEnd.x) {
+        // Vertical line
+        if (lineStart.x >= right || lineStart.x <= left) {
+            return false;
+        } 
+
+        auto minY = std::min(lineStart.y, lineEnd.y);
+        auto maxY = std::max(lineStart.y, lineEnd.y);
+
+        if (
+            (minY >= top && maxY >= top)
+            || (minY <= bottom && maxY <= bottom)
+        ) {
+            return false;
+        }
+        return true;
+    } else if (lineStart.y == lineEnd.y) {
+        // Horizontal line
+        if (lineStart.y >= top || lineStart.y <= bottom) {
+            return false;
+        }
+
+        auto minX = std::min(lineStart.x, lineEnd.x);
+        auto maxX = std::max(lineStart.x, lineEnd.x);
+
+        if (
+            (minX >= right && maxX >= right)
+            || (minX <= left && maxX <= left)
+        ) {
+            return false;
+        }
+        return true;
+    } else {
+        throw std::runtime_error("Diagonal lines are not yet implemented");
+    }
+}
 
 }
 
