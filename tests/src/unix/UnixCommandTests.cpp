@@ -1,6 +1,7 @@
 #if !defined(_WIN32) && !defined(__APPLE__)
 
 #include <format>
+#include <filesystem>
 #include <stc/StringUtil.hpp>
 #include <util/FreeEnv.hpp>
 #include "_meta/Constants.hpp"
@@ -287,7 +288,58 @@ TEST_CASE("Not stopping a process shouldn't cause a segfault", "[Process]") {
 
     // This observationally seems to work, but not entirely sure if it's 100% reliable. 
     // For some reason, using stop() instead of sigkill() seems to propagate a SIGTERM out of waitpid()
+    // Future me: this seems to also happen with sigkill in certain cases. This _is_ catch2 spotting the signal and
+    // treating it as an error. Not sure how I can prevent this.
     SUCCEED("If a SIGABRT is triggered, this fails");
+}
+
+TEST_CASE("Chdir changing should work as expected", "[Process]") {
+    // TODO: handling output like this is awkward
+    auto currDir = std::filesystem::current_path().string();
+
+    SECTION("Current working directory is current") {
+        stc::Unix::Process p({
+            "/usr/bin/env", "bash", "-c", "pwd"
+        }, stc::Unix::Pipes::separate(false));
+        REQUIRE(p.block() == 0);
+        REQUIRE(p.getStdoutBuffer() == currDir + "\n");
+    }
+
+    SECTION("Invalid working directory should throw") {
+        REQUIRE_THROWS(
+            stc::Unix::Process({
+                "/usr/bin/env", "bash", "-c", "pwd"
+            }, 
+                stc::Unix::Pipes::separate(false),
+                stc::Unix::Environment {
+                    .workingDirectory = "/gjfdhfdhjfdhjfdhjgkfdjkfghhgjkfdurjkfdj"
+                }
+            )
+        );
+    }
+    SECTION("Valid working directory is valid") {
+        stc::Unix::Process p({
+            "/usr/bin/env", "bash", "-c", "pwd"
+        }, 
+            stc::Unix::Pipes::separate(false),
+            stc::Unix::Environment {
+                .workingDirectory = "/usr/bin"
+            }
+        );
+        INFO(
+            "You appear to be running this test in a completely fucked environment, or added Windows support without "
+            "updating this test"
+        );
+        REQUIRE(std::filesystem::exists("/usr/bin"));
+        REQUIRE(p.block() == 0);
+        REQUIRE(p.getStdoutBuffer() == "/usr/bin\n");
+    }
+
+    INFO(
+        "This asserts that the current path for the parent process hasn't changed. The working directory change should "
+        "only affect the child process."
+    );
+    REQUIRE(std::filesystem::current_path().string() == currDir);
 }
 
 #endif

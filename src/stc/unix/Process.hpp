@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #ifdef _WIN32
 #error "Process.hpp is currently UNIX only, and does not support Windows. Feel free to open a PR to change this"
 #endif
@@ -22,13 +23,14 @@
 #include <format>
 #include <functional>
 #include <iostream>
-#include <memory>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <pty.h>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <sys/poll.h>
 #include <sys/wait.h>
 #include <thread>
@@ -233,17 +235,32 @@ inline std::shared_ptr<PTY> createPTY() {
 }
 
 struct Environment {
-    std::map<std::string, std::string> env;
+    std::map<std::string, std::string> env = {};
     /**
      * Whether or not to start with `os.environ`. If false, nothing included in `os.environ` is forwarded.
      */
     bool extendEnviron = true;
+
+    /**
+     * If defined, the spawned process will do a cd just before executing the replacement command. If undefined, the
+     * current working directory is automagically used.
+     */
+    std::optional<std::string> workingDirectory = std::nullopt;
 
     void validate() const {
         for (auto& [k, v] : env) {
             if (k.find('=') != std::string::npos) {
                 throw std::runtime_error("Illegal key: " + k);
             }
+        }
+
+        if (workingDirectory.has_value() && !std::filesystem::is_directory(*workingDirectory)) {
+            throw std::runtime_error(
+                std::format(
+                    "Working directory set to {}, which does not exist or isn't a directory",
+                    *workingDirectory
+                )
+            );
         }
     }
 };
@@ -398,6 +415,16 @@ protected:
                         resolved.die();
                     }
                 }, interface.value());
+            }
+
+            if (env.has_value()) {
+                if (env->workingDirectory.has_value()) {
+                    // C++17 <3
+                    // Avoids chdir() from <unistd.h> so there's one less thing to do if this file can be made portable.
+                    std::filesystem::current_path(
+                        env->workingDirectory.value()
+                    );
+                }
             }
 
             execve(
