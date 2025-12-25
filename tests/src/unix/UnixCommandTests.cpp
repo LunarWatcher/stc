@@ -7,6 +7,7 @@
 #include "_meta/Constants.hpp"
 #include <stc/unix/Process.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <stc/test/CaptureStream.hpp>
 
 using namespace std::literals;
 
@@ -340,6 +341,24 @@ TEST_CASE("Chdir changing should work as expected", "[Process]") {
         "only affect the child process."
     );
     REQUIRE(std::filesystem::current_path().string() == currDir);
+}
+
+TEST_CASE("When enabled, Process should output its command") {
+    stc::testutil::CaptureStandardStreams capt;
+    stc::Unix::Process p({
+        "/usr/bin/env", "bash", "-c", "echo", "hi"
+    }, stc::Unix::Pipes::shared(false), std::nullopt, {
+        .verboseUserOutput = true
+    });
+
+
+    auto result = p.block();
+    INFO(p.getStderrBuffer() << "\n" << p.getStdoutBuffer());
+    REQUIRE(result == 0);
+    REQUIRE(capt.cerr.content.str() == "");
+    INFO("|" << capt.cout.content.str() << "|");
+    REQUIRE(capt.cout.content.str() == R"(Exec: "/usr/bin/env" "bash" "-c" "echo" "hi"
+)"); // This linebreak is loadbearing
 }
 
 #endif

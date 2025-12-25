@@ -8,7 +8,7 @@ TEST_CASE("Verify that stdout can be captured by CaptureStream", "[CaptureStream
     REQUIRE(cap.content.str() == "I like trains\n");
 
     cap.restore();
-    std::cout << "CaptureStream test output\n";
+    std::cout << "CaptureStream test output after release (if you're seeing this, the test has passed)\n";
     REQUIRE(cap.content.str() == "I like trains\n");
 }
 

@@ -3,6 +3,7 @@
 #include "stc/StringUtil.hpp"
 
 #include "catch2/catch_test_macros.hpp"
+#include "stc/test/CaptureStream.hpp"
 
 #ifndef _WIN32
 // Would be great to test this on Windows as well, but windows is so unreliable

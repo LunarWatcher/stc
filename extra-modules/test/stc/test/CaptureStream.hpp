@@ -25,6 +25,7 @@ private:
 public:
     std::stringstream content;
 
+    [[nodiscard("Discarding the field means all the streams are immediately uncaptured")]]
     CaptureStream(T& stream) : stream(stream) {
         this->buffer = stream.rdbuf();
         this->stream.rdbuf(content.rdbuf());

@@ -265,6 +265,9 @@ struct Environment {
     }
 };
 
+struct Config {
+    bool verboseUserOutput = false;
+};
 
 class Process {
 protected:
@@ -280,6 +283,8 @@ protected:
     std::atomic<int> statusCode = -1;
     std::atomic<std::optional<bool>> exitedNormally;
     bool running = true;
+
+    Config config;
     
     bool waitPid(int opts = 0) {
         int wstatus;
@@ -390,9 +395,24 @@ protected:
             env->validate();
         }
 
+        if (config.verboseUserOutput) {
+            std::cout << "Exec: ";
+        }
         convertedCommand.reserve(command.size() + 1);
         for (auto& str : command) {
+            if (config.verboseUserOutput) {
+                std::cout << std::quoted(str);
+                // This isn't strictly speaking necessary, but avoids a situation where the tests need a .starts_with(),
+                // or it'll require the full string to contain a load-bearing linebreak AND a load-bearing trailing
+                // space.
+                if (convertedCommand.size() != command.size() - 1) {
+                    std::cout << " ";
+                }
+            }
             convertedCommand.push_back(str.c_str());
+        }
+        if (config.verboseUserOutput) {
+            std::cout << "\n";
         }
         convertedCommand.push_back(nullptr);
 
@@ -452,8 +472,9 @@ public:
     [[nodiscard("Discarding immediately terminates the process. You probably don't want this")]]
     Process(
         const std::vector<std::string>& command,
-        const std::optional<Environment>& env = std::nullopt
-    ) {
+        const std::optional<Environment>& env = std::nullopt,
+        const Config& config = {}
+    ): config(config) {
         doSpawnCommand(command, nullptr, nullptr, env);
     }
 
@@ -461,8 +482,9 @@ public:
     Process(
         const std::vector<std::string>& command,
         const Pipes& pipes,
-        const std::optional<Environment>& env = std::nullopt
-    ) {
+        const std::optional<Environment>& env = std::nullopt,
+        const Config& config = {}
+    ): config(config) {
         interface = pipes;
 
         doSpawnCommand(command, [this]() {
@@ -497,8 +519,9 @@ public:
     Process(
         const std::vector<std::string>& command,
         const std::shared_ptr<PTY>& pty,
-        const std::optional<Environment>& env = std::nullopt
-    ) {
+        const std::optional<Environment>& env = std::nullopt,
+        const Config& config = {}
+    ): config(config) {
         if (pty == nullptr) {
             throw std::runtime_error(
                 "pty cannot be null. If you don't want to attach anything, use the non-pipe/non-PTY constructor instead"
