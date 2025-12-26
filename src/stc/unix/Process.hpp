@@ -389,6 +389,9 @@ protected:
         const std::function<void()>& prepDuping,
         const std::optional<Environment>& env
     ) {
+        if (command.size() == 0) {
+            throw std::runtime_error("Cannot run null command");
+        }
         std::vector<const char*> convertedCommand;
 
         if (env) {
