@@ -3,7 +3,6 @@
 
 #include <chrono>
 #include <format>
-#include <source_location>
 #include "Colour.hpp"
 
 /**
@@ -24,16 +23,6 @@ enum Level {
 
 struct Config {
     Level level = Level::DEBUG;
-};
-
-struct FormatString {
-    std::string_view str;
-    std::source_location loc;
-
-    FormatString(
-        const char* str,
-        const std::source_location& loc = std::source_location::current()
-    ) : str(str), loc(loc) {}
 };
 
 inline Config& config() {
