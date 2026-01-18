@@ -94,27 +94,27 @@ inline void log(const std::format_string<Args...>& fmt, Args&&... args) {
 
 
 template <class... Args>
-inline void debug(const std::format_string<Args...>& format, Args&... args) {
+inline void debug(const std::format_string<Args...>& format, Args&&... args) {
     log<Level::DEBUG, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
-inline void info(const std::format_string<Args...>& format, Args&... args) {
+inline void info(const std::format_string<Args...>& format, Args&&... args) {
     log<Level::INFO, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
-inline void warn(const std::format_string<Args...>& format, Args&... args) {
+inline void warn(const std::format_string<Args...>& format, Args&&... args) {
     log<Level::WARNING, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
-inline void error(const std::format_string<Args...>& format, Args&... args) {
+inline void error(const std::format_string<Args...>& format, Args&&... args) {
     log<Level::ERROR, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
-inline void critical(const std::format_string<Args...>& format, Args&... args) {
+inline void critical(const std::format_string<Args...>& format, Args&&... args) {
     log<Level::CRITICAL, Args...>(format, std::forward<Args>(args)...);
 }
 
