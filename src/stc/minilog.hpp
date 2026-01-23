@@ -14,15 +14,15 @@
 namespace minilog {
 
 enum Level {
-    DEBUG = 50,
-    INFO = 60,
-    WARNING = 70,
-    ERROR = 80,
-    CRITICAL = 90
+    Debug = 50,
+    Info = 60,
+    Warning = 70,
+    Error = 80,
+    Critical = 90
 };
 
 struct Config {
-    Level level = Level::DEBUG;
+    Level level = Level::Debug;
 };
 
 inline Config& config() {
@@ -40,29 +40,29 @@ inline Config& config() {
 
 template <Level level>
 consteval std::string_view levelToString() {
-    if constexpr (level == Level::DEBUG) {
+    if constexpr (level == Level::Debug) {
         return "debug";
-    } else if constexpr (level == Level::INFO) {
+    } else if constexpr (level == Level::Info) {
         return "info";
-    } else if constexpr (level == Level::WARNING) {
+    } else if constexpr (level == Level::Warning) {
         return "warning";
-    } else if constexpr (level == Level::ERROR) {
+    } else if constexpr (level == Level::Error) {
         return "error";
-    } else if constexpr (level == Level::CRITICAL) {
+    } else if constexpr (level == Level::Critical) {
         return "critical";
     }
 }
 
 inline std::ostream& operator<<(std::ostream& ss, Level level) {
-    if (level == Level::DEBUG) {
+    if (level == Level::Debug) {
         ss << stc::colour::fg<stc::colour::FourBitColour::BRIGHT_BLACK>;
-    } else if (level == Level::INFO) {
+    } else if (level == Level::Info) {
         ss << stc::colour::fg<stc::colour::FourBitColour::BLUE>;
-    } else if (level == Level::WARNING) {
+    } else if (level == Level::Warning) {
         ss << stc::colour::fg<stc::colour::FourBitColour::BRIGHT_YELLOW>;
-    } else if (level == Level::ERROR) {
+    } else if (level == Level::Error) {
         ss << stc::colour::fg<stc::colour::FourBitColour::BRIGHT_RED>;
-    } else if (level == Level::CRITICAL) {
+    } else if (level == Level::Critical) {
         ss << stc::colour::fg<stc::colour::FourBitColour::RED>;
     }
     return ss;
@@ -95,27 +95,27 @@ inline void log(const std::format_string<Args...>& fmt, Args&&... args) {
 
 template <class... Args>
 inline void debug(const std::format_string<Args...>& format, Args&&... args) {
-    log<Level::DEBUG, Args...>(format, std::forward<Args>(args)...);
+    log<Level::Debug, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
 inline void info(const std::format_string<Args...>& format, Args&&... args) {
-    log<Level::INFO, Args...>(format, std::forward<Args>(args)...);
+    log<Level::Info, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
 inline void warn(const std::format_string<Args...>& format, Args&&... args) {
-    log<Level::WARNING, Args...>(format, std::forward<Args>(args)...);
+    log<Level::Warning, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
 inline void error(const std::format_string<Args...>& format, Args&&... args) {
-    log<Level::ERROR, Args...>(format, std::forward<Args>(args)...);
+    log<Level::Error, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
 inline void critical(const std::format_string<Args...>& format, Args&&... args) {
-    log<Level::CRITICAL, Args...>(format, std::forward<Args>(args)...);
+    log<Level::Critical, Args...>(format, std::forward<Args>(args)...);
 }
 
 }
