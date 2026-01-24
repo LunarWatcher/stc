@@ -9,6 +9,7 @@ add_executable(tests
     src/StringUtilTests.cpp
 
     src/bench/MathBench.cpp
+    src/bench/MinilogBench.cpp
 
     src/extra-modules/test/CaptureStreamTests.cpp
 
