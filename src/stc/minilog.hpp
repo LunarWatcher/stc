@@ -53,7 +53,7 @@ consteval std::string_view levelToString() {
     }
 }
 
-inline std::ostream& operator<<(std::ostream& ss, Level level) {
+inline constexpr std::ostream& operator<<(std::ostream& ss, Level level) {
     if (level == Level::Debug) {
         ss << stc::colour::fg<stc::colour::FourBitColour::BRIGHT_BLACK>;
     } else if (level == Level::Info) {
@@ -69,7 +69,7 @@ inline std::ostream& operator<<(std::ostream& ss, Level level) {
 }
 
 template <Level level, class... Args>
-inline void log(const std::format_string<Args...>& fmt, Args&&... args) {
+inline constexpr void log(const std::format_string<Args...>& fmt, Args&&... args) {
     if (config().level > level) {
         return;
     }
@@ -94,27 +94,27 @@ inline void log(const std::format_string<Args...>& fmt, Args&&... args) {
 
 
 template <class... Args>
-inline void debug(const std::format_string<Args...>& format, Args&&... args) {
+inline constexpr void debug(const std::format_string<Args...>& format, Args&&... args) {
     log<Level::Debug, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
-inline void info(const std::format_string<Args...>& format, Args&&... args) {
+inline constexpr void info(const std::format_string<Args...>& format, Args&&... args) {
     log<Level::Info, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
-inline void warn(const std::format_string<Args...>& format, Args&&... args) {
+inline constexpr void warn(const std::format_string<Args...>& format, Args&&... args) {
     log<Level::Warning, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
-inline void error(const std::format_string<Args...>& format, Args&&... args) {
+inline constexpr void error(const std::format_string<Args...>& format, Args&&... args) {
     log<Level::Error, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
-inline void critical(const std::format_string<Args...>& format, Args&&... args) {
+inline constexpr void critical(const std::format_string<Args...>& format, Args&&... args) {
     log<Level::Critical, Args...>(format, std::forward<Args>(args)...);
 }
 
