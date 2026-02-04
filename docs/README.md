@@ -1,0 +1,91 @@
+# stc
+
+Header-only utilities for C++20\* and up. Name inspired by [stb](https://github.com/nothings/stb) (in part so I can have `stb`, `stc`, and `std` in some of my projects :) )
+
+<sub>\*: Subject to change in the future</sub>
+
+## Modules
+
+### Standalone modules
+
+| Library | Category | Description | Warnings |
+| --- | --- | --- | --- |
+| `stc/Environment.hpp` | OS compatibility | Filesystem and other environmental utils for OS-specific operations | Uses `Windows.h` on Windows[^1] |
+| `stc/FileLock.hpp` | OS compatibility | Adds functions to deal with file locks. Uses flock on Linux, and exclusive file access on Windows. | Uses `Windows.h` on Windows[^1] |
+| `stc/IO.hpp` | OS compatibility | Deals with cross-platform IO | Uses `Windows.h` on Windows[^1] |
+| `stc/Math.hpp` | Utility library | Adds math utility functions, largely for geometry because it keeps coming up. | |
+| `stc/StdFix.hpp` | stdlib fixes | Adds functions to deal with C++ being dumb | |
+| `stc/StringUtil.hpp` | Utility library | Adds a few string operations that C++ does not (but should) have built into strings |  |
+| `stc/minolog.hpp` | Utility library | Bare minimum logging library | |
+| `stc/unix/Process.hpp` | Utility library | Advanced command line execution; supercedes several `Environment.hpp` functions | UNIX only ([for now](https://github.com/LunarWatcher/stc/issues/3)); **unstable API** |
+
+### Non-standalone modules
+
+Some of the modules in this library depend on other modules. These are explicitly labelled to make it easier to identify what dependencies are necessary for minimal builds.
+
+| Library | Category | Description | Dependencies |
+| --- | --- | --- | --- |
+| `stc/Colour.hpp` | Utility library | ANSI colour utility library for C++ streams | `Environment.hpp` |
+
+### Extra modules
+
+Aside the modules in stc's core library, there are some standalone modules that aren't included by default.
+
+* `stc::testutil`: includes several test utilities, either aimed at use with [Catch2](https://github.com/catchorg/Catch2/), or more general-purpose that works with anything.
+    * **This should not be included outside tests**; I cannot stop you, but the APIs are designed for use in tests, not in production code, and at worst, have severe flaws that may even be intentional design, as test environments have fewer weird things that need to be accounted for.
+
+Note that the key here can be used for linking, like `target_link_libraries(tests PUBLIC stc::testutil)`
+
+## Platform support
+
+For the most part, cross-platform support is attempted, as that's a large part of why this library exists; me being tired of dealing with cross-platform bullshit in downstream products. However, there are some exceptions to this.
+
+Certain functions have been walled off from certain operating systems. In functions, this is not as clearly labelled as it should be. In classes, things that only support specific operating systems (or realistically, classes of operating systems, since UNIX is very broad but still has enough commonalities to mostly just work:tm:) are scoped by folder. `stc/unix`, for example, only contains UNIX-specific features. 
+
+The goal is to be as portable as possible, but not all features are going to work across all platforms nearly as easily. `Process.hpp`, at the time of writing, is over 410 lines of fairly involved UNIX API stuff. Trying to add Windows support into that would be far too difficult to attempt.
+
+The general support priority is:
+
+1. Linux/UNIX, broad UNIX support is incidental
+2. Windows
+3. Crapple, though crapple being in third place is misleading. It's _far_ behind Windows, as I have no real interest in developing for an operating system with a 2000 EUR entry fee.
+
+
+The main reason many of the cross-platform wrappers exist is because I'm a Linux main who occasionally wants Windows support, and can't be bothered reimplementing all the Windows-specific shit. That and, as much as I like the Linux/UNIX API, it has enough pitfalls that I don't want to work with it directly by default; wrapping it is still necessary, especially to make good use of RAII in certain cases.
+
+---
+
+That said, compatibility is mostly verified by tests. Certain things are disabled on certain platforms when not supporting it is intentional, but trying to get the buidl green everywhere is usually the main goal.
+
+## Usage
+
+> [!warning]
+> Upcoming versions of stc will not be header-only. Some of these are very low-level dependencies that include `<Windows.h>`, which can fuck over builds. Separating implementations into source files is the easiest way to avoid this.
+
+All you have to do is set up `src/` as an include directory. Everything is header-only, and at the time of writing, requires no other setup.
+
+CMake users can instead `add_subdirectory()` and take advantage of the `stc` interface target:
+```
+target_link_libraries(your-program stc)
+```
+
+FetchContent also works:
+
+```
+include(FetchContent)
+FetchContent_Declare(stc
+    GIT_REPOSITORY https://github.com/LunarWatcher/stc
+    # Optional: pin stc version
+    # GIT_TAG <hash>
+)
+FetchContent_MakeAvailable(stc)
+
+# Same system as subdirectory
+target_link_libraries(your-program stc)
+```
+
+## C++ compatibility
+
+The current version of C++ targeted is C++20. This is not a new change at the time of this commit, as a dumb mistake resulted in a C++20 function being part of the library and not being caught, because testing hard.
+
+[^1]: `Windows.h` is known to cause lots of problems on import, because it's stuffed full of macros and other shit that conflicts with a _lot_ of code. `#define NOMINMAX` is used to deal with one of the problems, but it can still fuck your code with weird error messages. If you get weird error messages after importing headers with `Windows.h` that inexplicably only appear on Windows, `Windows.h` is why
