@@ -1,4 +1,6 @@
 #include <catch2/catch_session.hpp>
+// This _is_ used, do not remove.
+#include "stc/test/catch2/ExplicitStreamTestReporter.hpp"
 
 #ifndef _WIN32
 #include <unistd.h>
