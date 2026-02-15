@@ -89,7 +89,8 @@ inline constexpr void log(const std::format_string<Args...>& fmt, Args&&... args
             levelToString<level>(),
             std::format<Args...>(fmt, std::forward<Args>(args)...)
         )
-        << stc::colour::reset;
+        << stc::colour::reset
+        << std::flush;
 }
 
 
