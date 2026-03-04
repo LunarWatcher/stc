@@ -148,4 +148,26 @@ inline void removeDuplicateWhitespace(const std::string& input, std::string& out
         });
 }
 
+/**
+ * Does case-insensitive compare on ascii strings.
+ * For compatibiltiy, this only modifies bytes in the range 'A'-'Z', and moves them to lower-case ('a'-'z').
+ */
+inline bool equalsIgnoreCaseAscii(const std::string& a, const std::string& b) {
+    if (a.size() != b.size()) { return false; }
+
+    for (size_t i = 0; i < a.size(); ++i) {
+        if (
+            (
+                a.at(i) >= 'A' && a.at(i) <= 'Z' ? a.at(i) + 32 : a.at(i)
+            ) != (
+                b.at(i) >= 'A' && b.at(i) <= 'Z' ? b.at(i) + 32 : b.at(i)
+            )
+        ) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 }

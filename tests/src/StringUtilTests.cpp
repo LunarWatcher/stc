@@ -147,3 +147,15 @@ TEST_CASE("Verify removeDuplicateWhitespace", "[Feat]") {
     stc::string::removeDuplicateWhitespace(source, out);
     REQUIRE(out == "Foxes in spaaaaace");
 }
+
+TEST_CASE("Verify ascii string equality") {
+    REQUIRE(stc::string::equalsIgnoreCaseAscii(
+        "+FoXeS iN SPaCe", "+foXes in spAce"
+    ));
+    REQUIRE_FALSE(
+        stc::string::equalsIgnoreCaseAscii(
+            "æ", "Æ"
+        )
+    );
+}
+
