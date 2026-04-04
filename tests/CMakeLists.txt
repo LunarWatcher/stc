@@ -5,8 +5,6 @@ add_executable(tests
     src/ColourTests.cpp
     src/EnvironmentTests.cpp
     src/LockTests.cpp
-    src/MinilogTests.cpp
-    src/ResultTypeTests.cpp
     src/StdFixTests.cpp
     src/StringUtilTests.cpp
 
@@ -21,6 +19,8 @@ add_executable(tests
 
     # Test utils and test util tests
     src/util/FreeEnvTests.cpp
+
+    src/MinilogTests.cpp
 
     # This test does not contain any tests, but is a test through just existing.
     # It includes everything, which forces everything to be evaluated, which means 
