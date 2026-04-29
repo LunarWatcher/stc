@@ -44,6 +44,9 @@ namespace stc::Unix {
 
 struct LowLevelWrapper {
     ssize_t writeToFd(const std::string& data, int fd) {
+        if (fd < 0) {
+            throw std::runtime_error("Illegal write on closed or invalid fd");
+        }
         ssize_t bytes = write(fd, data.data(), data.size());
         if (bytes > 0) {
             return bytes;
