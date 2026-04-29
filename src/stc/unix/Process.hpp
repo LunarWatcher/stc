@@ -621,6 +621,9 @@ public:
      * \throws std::runtime_error if not using pipe or PTY mode, or if using pipe mode and the stdin pipe is null
      */
     ssize_t writeToStdin(const std::string& data) {
+        if (!this->running) {
+            throw std::runtime_error("Cannot write to closed proc");
+        }
         if (interface) {
             return std::visit([&](auto& resolved) -> ssize_t {
                 using T = std::decay_t<decltype(resolved)>;
