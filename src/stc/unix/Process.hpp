@@ -540,7 +540,10 @@ public:
                     stdoutBuff
                 );
             }
-
+            // TODO: a random python-related question I stumbled into suggested using two PTYs so the output and input
+            // can be handled separately. This was in relation to closing stdin. In theory, three separate PTYs could be
+            // used to achieve the same system as pipes. I imagine this is what some terminals use to highlight error
+            // output separately from standard output?
         }, [&]() {
             dup2(pty->slave, STDIN_FILENO);
             dup2(pty->slave, STDOUT_FILENO);
@@ -670,6 +673,13 @@ public:
     void closeStdin() {
         if (!this->interface.has_value()) {
             throw std::runtime_error("Must use pipe or pty mode to use this function");
+        }
+
+        if (std::holds_alternative<Pipes>(*this->interface)) {
+            auto& ptr = std::get<Pipes>(*this->interface).stdinPipe;
+            if (ptr) {
+                ptr->closeWrite();
+            }
         }
     }
 
