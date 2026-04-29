@@ -470,6 +470,8 @@ protected:
         do {
             readImpl();
         } while (!waitPid(WNOHANG));
+        // Read anything left in the buffer at exit time
+        readImpl();
     }
 public:
     [[nodiscard("Discarding immediately terminates the process. You probably don't want this")]]
