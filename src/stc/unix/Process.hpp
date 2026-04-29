@@ -310,6 +310,7 @@ protected:
                     << "WARNING: stc::Unix::Process got an unknown status: " << wstatus 
                     << std::endl;
             }
+            this->running = false;
             return true;
         }
         return false;
