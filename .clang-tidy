@@ -3,7 +3,6 @@
 # - clang-analyzer-cplusplus.NewDeleteLeaks: borked (https://github.com/llvm/llvm-project/issues/55219)
 # - readability-qualified-auto: on the fence about it, but this defeats part of the point of auto
 Checks: >
-  -*,
   bugprone-*,
   clang-*,
   misc-*,

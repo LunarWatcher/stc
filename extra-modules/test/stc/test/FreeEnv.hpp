@@ -1,6 +1,8 @@
+#pragma once
+
 #include "stc/Environment.hpp"
 
-namespace util {
+namespace stc::testutil {
 
 /**
  * Utility class for making sure an environment variable added to environ is freed properly.

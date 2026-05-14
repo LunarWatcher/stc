@@ -34,15 +34,17 @@ set(CATCH_CONFIG_DEFAULT_REPORTER "explicit" CACHE STRING "" FORCE)
 FetchContent_Declare(
     Catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG v3.12.0
+    GIT_TAG v3.14.0
 )
 
 FetchContent_MakeAvailable(Catch2)
 
+set_target_properties(Catch2 PROPERTIES CXX_CLANG_TIDY "")
+
 target_include_directories(tests PUBLIC ./src/)
 target_link_libraries(
-    tests 
-    Catch2::Catch2 
+    tests
+    Catch2::Catch2
     stc::stc
     stc::testutil
 )

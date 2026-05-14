@@ -1,6 +1,5 @@
 #pragma once
 
-#include <filesystem>
 #ifdef _WIN32
 #error "Process.hpp is currently UNIX only, and does not support Windows. Feel free to open a PR to change this"
 #endif
@@ -20,6 +19,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
+#include <filesystem>
 #include <format>
 #include <functional>
 #include <iostream>
@@ -54,6 +54,31 @@ struct LowLevelWrapper {
         return 0;
     }
 
+    ssize_t readFromFd(std::array<char, 4096>& out, int fd) {
+        ssize_t sum = 0;
+
+        nfds_t nfds = 1;
+        pollfd pdfs = {
+            .fd = fd,
+            .events = POLLIN,
+            .revents = 0
+        };
+
+        // we need a small timeout here to prevent race conditions
+        while (poll(&pdfs, nfds, 10)) {
+            ssize_t bytes = read(
+                fd,
+                out.data(),
+                out.size()
+            );
+            if (bytes > 0) {
+                sum += bytes;
+                break;
+            }
+        }
+        return sum;
+    }
+
     ssize_t readFromFd(std::stringstream& out, int fd) {
         std::array<char, 4096> buff;
         ssize_t sum = 0;
@@ -81,6 +106,8 @@ struct LowLevelWrapper {
         }
         return sum;
     }
+
+    virtual int readFd() = 0;
 };
 
 struct Pipe : public LowLevelWrapper {
@@ -113,7 +140,7 @@ struct Pipe : public LowLevelWrapper {
         fds[1] = -1;
     }
 
-    int readFd() {
+    int readFd() override {
         return fds[0];
     }
     int writeFd() {
@@ -164,11 +191,11 @@ struct PTY : public LowLevelWrapper {
         }
         slave = -1;
     }
-    /**
-     * Note: this function only writes to the master channel, as it's assumed the result of fork() never returns control
-     * back to the code executed by stc. DO NOT USE THIS STRUCT IF YOU BREAK THIS ASSUMPTION! Shit will get weird.
-     * Reimplement it from scratch, or open a PR to make this API better.
-     */
+
+    virtual int readFd() override {
+        return master;
+    }
+
     ssize_t writeToStdin(const std::string& data) {
         return writeToFd(data, master);
     }
@@ -272,6 +299,77 @@ struct Config {
     bool verboseUserOutput = false;
 };
 
+struct ReadHandler {
+    virtual void read(
+        LowLevelWrapper* primitive
+    ) = 0;
+};
+
+struct InMemoryReadHandler : public ReadHandler {
+    std::stringstream ss = {};
+    virtual void read(
+        LowLevelWrapper* primitive
+    ) override {
+        primitive->readFromFd(
+            ss,
+            primitive->readFd()
+        );
+    }
+
+    std::string getStream(bool reset = false) {
+        std::string d = ss.str();
+
+        if (reset) {
+            ss = {};
+        }
+
+        return d;
+    }
+};
+
+struct FdRedirectInputHandler : public ReadHandler {
+    int fd;
+
+    FdRedirectInputHandler(int fd) : fd(fd) {}
+
+    virtual void read(
+        LowLevelWrapper* primitive
+    ) override {
+        thread_local std::array<char, 4096> buff;
+        ssize_t bytes = primitive->readFromFd(
+            buff,
+            primitive->readFd()
+        );
+
+        if (bytes > 0) {
+            auto written = write(fd, buff.data(), bytes);
+
+            if (written <= 0) {
+                std::cerr << "Writing failed: " << strerror(errno) << std::endl;
+                throw std::runtime_error("Failed to write to output buffer");
+            }
+        }
+    }
+};
+
+struct ReadHandlers {
+    std::shared_ptr<ReadHandler> stdoutHandler, stderrHandler;
+
+    static ReadHandlers inMemory(bool separateStderr = true) {
+        return {
+            .stdoutHandler = std::make_shared<InMemoryReadHandler>(),
+            .stderrHandler = separateStderr ? std::make_shared<InMemoryReadHandler>() : nullptr,
+        };
+    }
+
+    static ReadHandlers stdStreamRedirect(bool separateStderr = true) {
+        return {
+            .stdoutHandler = std::make_shared<FdRedirectInputHandler>(STDOUT_FILENO),
+            .stderrHandler = separateStderr ? std::make_shared<FdRedirectInputHandler>(STDERR_FILENO) : nullptr,
+        };
+    }
+};
+
 class Process {
 protected:
     std::optional<decltype(fork())> pid = std::nullopt;
@@ -279,7 +377,8 @@ protected:
     std::optional<
         std::variant<Pipes, std::shared_ptr<PTY>>
     > interface;
-    std::stringstream stdoutBuff, stderrBuff;
+    // std::stringstream stdoutBuff, stderrBuff;
+    ReadHandlers readHandlers;
     std::mutex lock;
 
     std::thread inputCollector;
@@ -384,7 +483,6 @@ protected:
         data->push_back(nullptr);
 
         return data->data();
-
     }
 
     void doSpawnCommand(
@@ -492,23 +590,20 @@ public:
         const std::vector<std::string>& command,
         const Pipes& pipes,
         const std::optional<Environment>& env = std::nullopt,
-        const Config& config = {}
-    ): config(config) {
+        const Config& config = {},
+        const ReadHandlers& readHandlers = ReadHandlers::inMemory()
+    ): readHandlers(readHandlers), config(config) {
         interface = pipes;
 
         doSpawnCommand(command, [this]() {
             auto& pipes = std::get<Pipes>(this->interface.value());
-            if (pipes.stdoutPipe != nullptr) {
+            if (pipes.stdoutPipe != nullptr && this->readHandlers.stdoutHandler != nullptr) {
                 std::lock_guard l(lock);
-                pipes.stdoutPipe->readData(
-                    stdoutBuff
-                );
+                this->readHandlers.stdoutHandler->read(pipes.stdoutPipe.get());
             }
-            if (pipes.stderrPipe != nullptr) {
+            if (pipes.stderrPipe != nullptr && this->readHandlers.stderrHandler != nullptr) {
                 std::lock_guard l(lock);
-                pipes.stderrPipe->readData(
-                    stderrBuff
-                );
+                this->readHandlers.stderrHandler->read(pipes.stderrPipe.get());
             }
         }, [&]() {
             if (pipes.stdinPipe != nullptr) {
@@ -529,8 +624,9 @@ public:
         const std::vector<std::string>& command,
         const std::shared_ptr<PTY>& pty,
         const std::optional<Environment>& env = std::nullopt,
-        const Config& config = {}
-    ): config(config) {
+        const Config& config = {},
+        const ReadHandlers& readHandlers = ReadHandlers::inMemory()
+    ): readHandlers(readHandlers), config(config) {
         if (pty == nullptr) {
             throw std::runtime_error(
                 "pty cannot be null. If you don't want to attach anything, use the non-pipe/non-PTY constructor instead"
@@ -542,9 +638,11 @@ public:
 
             {
                 std::lock_guard l(lock);
-                pty->readData(
-                    stdoutBuff
-                );
+                if (this->readHandlers.stdoutHandler != nullptr) {
+                    this->readHandlers.stdoutHandler->read(
+                        pty.get()
+                    );
+                }
             }
             // TODO: a random python-related question I stumbled into suggested using two PTYs so the output and input
             // can be handled separately. This was in relation to closing stdin. In theory, three separate PTYs could be
@@ -556,8 +654,6 @@ public:
             dup2(pty->slave, STDERR_FILENO);
             std::get<std::shared_ptr<PTY>>(*interface)->die();
         }, env);
-
-        
     }
 
     virtual ~Process() {
@@ -578,11 +674,13 @@ public:
      */
     std::string getStdoutBuffer(bool reset = false) {
         std::lock_guard g(lock);
-        auto str = stdoutBuff.str();
-        if (reset) {
-            stdoutBuff = {};
+        if (auto ptr = std::dynamic_pointer_cast<InMemoryReadHandler>(this->readHandlers.stdoutHandler);
+            ptr != nullptr
+        ) {
+            return ptr->getStream(reset);
+        } else {
+            return "";
         }
-        return str;
     }
 
     /**
@@ -597,21 +695,36 @@ public:
      */
     std::string getStderrBuffer(bool reset = false) {
         std::lock_guard g(lock);
-        auto str = stderrBuff.str();
-        if (reset) {
-            stderrBuff = {};
+        if (auto ptr = std::dynamic_pointer_cast<InMemoryReadHandler>(this->readHandlers.stderrHandler);
+            ptr != nullptr
+        ) {
+            return ptr->getStream(reset);
+        } else {
+            return "";
         }
-        return str;
     }
 
     /**
      * Wipes the content of both stdoutBuff and stderrBuff without returning the contents.
      * To also get the content of the buffers, use getStderrBuffer and getStdoutBuffer, and pass reset = true.
+     * \throws runtime_error if stdout handler is not set, or isn't set to an InMemoryReadHandler
      */
     void resetBuffers() {
         std::lock_guard g(lock);
-        stderrBuff = {};
-        stdoutBuff = {};
+        if (auto ptr = std::dynamic_pointer_cast<InMemoryReadHandler>(this->readHandlers.stdoutHandler);
+            ptr != nullptr
+        ) {
+            ptr->ss = {};
+        } else {
+            throw std::runtime_error("stdout handler is null or otherwise not an InMemoryReadHandler");
+        }
+        if (auto ptr = std::dynamic_pointer_cast<InMemoryReadHandler>(this->readHandlers.stderrHandler);
+            ptr != nullptr
+        ) {
+            ptr->ss = {};
+        } else {
+            throw std::runtime_error("stderr handler is null or otherwise not an InMemoryReadHandler");
+        }
     }
 
     /**

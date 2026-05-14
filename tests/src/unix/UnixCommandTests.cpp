@@ -1,13 +1,17 @@
 #if !defined(_WIN32) && !defined(__APPLE__)
 
-#include <format>
-#include <filesystem>
-#include <stc/StringUtil.hpp>
-#include <util/FreeEnv.hpp>
 #include "_meta/Constants.hpp"
-#include <stc/unix/Process.hpp>
+#include "stc/test/FreeEnv.hpp"
+#include "stc/test/FreeFile.hpp"
 #include <catch2/catch_test_macros.hpp>
+#include <cstdio>
+#include <filesystem>
+#include <format>
+#include <fstream>
+#include <stc/StringUtil.hpp>
 #include <stc/test/CaptureStream.hpp>
+#include <stc/unix/Process.hpp>
+#include "stc/StdFix.hpp"
 
 using namespace std::literals;
 
@@ -217,7 +221,7 @@ TEST_CASE("stc::Unix::Environment should merge properly with environ", "[Process
 
 TEST_CASE("stc::Unix::Environment defining existing variables shouldn't cause problems", "[Process]") {
     // Used to sneak stuff into environ()
-    util::FreeEnv e("__PROCESS_TEST_CASE", "not_overridden");
+    stc::testutil::FreeEnv e("__PROCESS_TEST_CASE", "not_overridden");
 
     stc::Unix::Process p({
         "/usr/bin/env"
@@ -346,7 +350,7 @@ TEST_CASE("Chdir changing should work as expected", "[Process]") {
 TEST_CASE("When enabled, Process should output its command") {
     stc::testutil::CaptureStandardStreams capt;
     stc::Unix::Process p({
-        "/usr/bin/env", "bash", "-c", "echo", "hi"
+        "/usr/bin/env", "bash", "-c", "echo hi"
     }, stc::Unix::Pipes::shared(false), std::nullopt, {
         .verboseUserOutput = true
     });
@@ -357,8 +361,89 @@ TEST_CASE("When enabled, Process should output its command") {
     REQUIRE(result == 0);
     REQUIRE(capt.cerr.content.str() == "");
     INFO("|" << capt.cout.content.str() << "|");
-    REQUIRE(capt.cout.content.str() == R"(Exec: "/usr/bin/env" "bash" "-c" "echo" "hi"
+    REQUIRE(capt.cout.content.str() == R"(Exec: "/usr/bin/env" "bash" "-c" "echo hi"
 )"); // This linebreak is loadbearing
+}
+
+TEST_CASE("Process should not crash if all ReadHandlers are unset") {
+    SECTION("Pipes") {
+        stc::Unix::Process p({
+                "/usr/bin/env", "bash", "-c", "echo owo && exit 69"
+            },
+            stc::Unix::Pipes::separate(true),
+            std::nullopt,
+            {},
+            stc::Unix::ReadHandlers { nullptr, nullptr }
+        );
+
+        REQUIRE(p.block() == 69);
+        REQUIRE(p.getStderrBuffer() == "");
+        REQUIRE(p.getStdoutBuffer() == "");
+    }
+    SECTION("Pipes") {
+        stc::Unix::Process p({
+                "/usr/bin/env", "bash", "-c", "echo owo && exit 69"
+            },
+            std::make_shared<stc::Unix::PTY>(),
+            std::nullopt,
+            {},
+            stc::Unix::ReadHandlers { nullptr, nullptr }
+        );
+
+        REQUIRE(p.block() == 69);
+        REQUIRE(p.getStderrBuffer() == "");
+        REQUIRE(p.getStdoutBuffer() == "");
+    }
+}
+
+TEST_CASE("fd redirects should work") {
+    stc::testutil::FreeFile f{"/tmp/stc-test-file.txt", true};
+    std::unique_ptr<int, std::function<void(int*)>> fd(
+        new int(open(f.file.c_str(), O_RDWR | O_SYNC)),
+        [](int* val) {
+            if (*val >= 0) {
+                close(
+                    *val
+                );
+            }
+        }
+    );
+
+    {
+        INFO(strerror(errno));
+        REQUIRE(*fd > 0);
+    }
+    
+    SECTION("As stdout") {
+        stc::Unix::Process p({
+                "/usr/bin/bash", "-c", "echo owo && exit 69"
+            },
+            std::make_shared<stc::Unix::PTY>(),
+            std::nullopt,
+            {},
+            stc::Unix::ReadHandlers {
+                std::make_shared<stc::Unix::FdRedirectInputHandler>(*fd),
+                nullptr
+            }
+        );
+
+        REQUIRE(p.block() == 69);
+        REQUIRE(p.getStdoutBuffer() == "");
+
+        fsync(*fd);
+        
+        std::ifstream fs(f.file);
+
+        REQUIRE(bool(fs));
+
+        std::string line;
+        // TODO: For whatever reason, the output from the command line includes a \r, which fucks up the other output.
+        REQUIRE(bool(stc::StdFix::getline(fs, line)));
+        REQUIRE(line == "owo");
+        bool next = bool(stc::StdFix::getline(fs, line));
+        INFO(line);
+        REQUIRE_FALSE(next);
+    }
 }
 
 #endif
