@@ -44,7 +44,7 @@ TEST_CASE("Syscommand should handle return codes", "[Environment][syscommand]") 
 }
 
 TEST_CASE("Verify hostname return value", "[Environment][getHostname]") {
-#ifndef __APPLE__
+#if !defined __APPLE__ && !defined _WIN32
     auto control = stc::syscommand("hostnamectl hostname");
 #else
     auto control = stc::syscommand("hostname");
