@@ -10,6 +10,7 @@ namespace stc::testutil {
 struct TestEnvVariable {
     std::string name;
 
+    [[nodiscard("Discarding this object will immediately delete the environment variable")]]
     TestEnvVariable(
         const std::string& name,
         const std::string& initValue = ""

@@ -19,6 +19,7 @@ add_executable(tests
 
     # Test utils and test util tests
     src/util/TestEnvVariableTests.cpp
+    src/util/TestDirectoryTests.cpp
 
     src/MinilogTests.cpp
 

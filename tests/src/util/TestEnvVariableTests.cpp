@@ -8,6 +8,6 @@ TEST_CASE("Verify that FreeEnv clears the variable after use", "[FreeEnv]") {
         REQUIRE(stc::getEnv("rawr") == "__value__");
 
         throw std::runtime_error("hi");
-    } catch (std::runtime_error) {} // NOLINT
+    } catch (const std::runtime_error&) {} // NOLINT
     REQUIRE(stc::getEnv("rawr", "yes") == "yes");
 }
