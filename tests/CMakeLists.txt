@@ -18,7 +18,7 @@ add_executable(tests
     src/unix/UnixCommandTests.cpp
 
     # Test utils and test util tests
-    src/util/FreeEnvTests.cpp
+    src/util/TestEnvVariableTests.cpp
 
     src/MinilogTests.cpp
 

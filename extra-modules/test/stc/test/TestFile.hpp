@@ -5,10 +5,10 @@
 
 namespace stc::testutil {
 
-struct FreeFile {
+struct TestFile {
     std::filesystem::path file;
 
-    FreeFile(const std::filesystem::path& f, bool create = false) : file(f) {
+    TestFile(const std::filesystem::path& f, bool create = false) : file(f) {
         deleteFile();
 
         if (create) {
@@ -20,7 +20,7 @@ struct FreeFile {
             }
         }
     }
-    ~FreeFile() {
+    ~TestFile() {
         deleteFile();
     }
     void deleteFile() {

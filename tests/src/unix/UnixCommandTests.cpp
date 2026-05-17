@@ -1,8 +1,8 @@
 #if !defined(_WIN32) && !defined(__APPLE__)
 
 #include "_meta/Constants.hpp"
-#include "stc/test/FreeEnv.hpp"
-#include "stc/test/FreeFile.hpp"
+#include "stc/test/TestEnvVariable.hpp"
+#include "stc/test/TestFile.hpp"
 #include <catch2/catch_test_macros.hpp>
 #include <cstdio>
 #include <filesystem>
@@ -221,7 +221,7 @@ TEST_CASE("stc::Unix::Environment should merge properly with environ", "[Process
 
 TEST_CASE("stc::Unix::Environment defining existing variables shouldn't cause problems", "[Process]") {
     // Used to sneak stuff into environ()
-    stc::testutil::FreeEnv e("__PROCESS_TEST_CASE", "not_overridden");
+    stc::testutil::TestEnvVariable e("__PROCESS_TEST_CASE", "not_overridden");
 
     stc::Unix::Process p({
         "/usr/bin/env"
@@ -397,7 +397,7 @@ TEST_CASE("Process should not crash if all ReadHandlers are unset") {
 }
 
 TEST_CASE("fd redirects should work") {
-    stc::testutil::FreeFile f{"/tmp/stc-test-file.txt", true};
+    stc::testutil::TestFile f{"/tmp/stc-test-file.txt", true};
     std::unique_ptr<int, std::function<void(int*)>> fd(
         new int(open(f.file.c_str(), O_RDWR | O_SYNC)),
         [](int* val) {

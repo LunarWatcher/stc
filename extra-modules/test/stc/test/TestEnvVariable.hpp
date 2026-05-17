@@ -7,10 +7,10 @@ namespace stc::testutil {
 /**
  * Utility class for making sure an environment variable added to environ is freed properly.
  */
-struct FreeEnv {
+struct TestEnvVariable {
     std::string name;
 
-    FreeEnv(
+    TestEnvVariable(
         const std::string& name,
         const std::string& initValue = ""
     ) : name(name) {
@@ -21,7 +21,7 @@ struct FreeEnv {
         }
     }
 
-    ~FreeEnv() {
+    ~TestEnvVariable() {
         if (!name.empty()) {
             stc::setEnv(name.c_str(), nullptr);
         }
