@@ -88,6 +88,9 @@ TEST_CASE("Test local directory") {
         }());
         REQUIRE(std::filesystem::exists(existing));
 
+        // Sanity check: underlying helper function needs to throw
+        REQUIRE_THROWS(verifyDummyMode.checkCompatiblePath("/"));
+
         REQUIRE_THROWS(
             stc::testutil::TestDirectory {
                 "/",
