@@ -95,26 +95,31 @@ inline constexpr void log(const std::format_string<Args...>& fmt, Args&&... args
 
 
 template <class... Args>
+[[deprecated("Minilog has been separated into a bigger project: https://codeberg.org/LunarWatcher/minilog")]]
 inline constexpr void debug(const std::format_string<Args...>& format, Args&&... args) {
     log<Level::Debug, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
+[[deprecated("Minilog has been separated into a bigger project: https://codeberg.org/LunarWatcher/minilog")]]
 inline constexpr void info(const std::format_string<Args...>& format, Args&&... args) {
     log<Level::Info, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
+[[deprecated("Minilog has been separated into a bigger project: https://codeberg.org/LunarWatcher/minilog")]]
 inline constexpr void warn(const std::format_string<Args...>& format, Args&&... args) {
     log<Level::Warning, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
+[[deprecated("Minilog has been separated into a bigger project: https://codeberg.org/LunarWatcher/minilog")]]
 inline constexpr void error(const std::format_string<Args...>& format, Args&&... args) {
     log<Level::Error, Args...>(format, std::forward<Args>(args)...);
 }
 
 template <class... Args>
+[[deprecated("Minilog has been separated into a bigger project: https://codeberg.org/LunarWatcher/minilog")]]
 inline constexpr void critical(const std::format_string<Args...>& format, Args&&... args) {
     log<Level::Critical, Args...>(format, std::forward<Args>(args)...);
 }
