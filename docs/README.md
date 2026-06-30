@@ -84,6 +84,8 @@ FetchContent_MakeAvailable(stc)
 target_link_libraries(your-program stc)
 ```
 
+Note: as of 2026-06-30, stc has proper tags. These follow a rough variant of date versioning, and a new release is made whenever enough changes have been made. For the latest version, see https://codeberg.org/LunarWatcher/stc/tags
+
 ## C++ compatibility
 
 The current version of C++ targeted is C++20. This is not a new change at the time of this commit, as a dumb mistake resulted in a C++20 function being part of the library and not being caught, because testing hard.
