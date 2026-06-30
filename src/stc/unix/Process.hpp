@@ -303,6 +303,7 @@ struct ReadHandler {
     virtual void read(
         LowLevelWrapper* primitive
     ) = 0;
+    virtual void flush() {}
 };
 
 struct InMemoryReadHandler : public ReadHandler {
@@ -331,6 +332,9 @@ struct FdRedirectInputHandler : public ReadHandler {
     int fd;
 
     FdRedirectInputHandler(int fd) : fd(fd) {}
+    ~FdRedirectInputHandler() {
+        flush();
+    }
 
     virtual void read(
         LowLevelWrapper* primitive
@@ -349,6 +353,10 @@ struct FdRedirectInputHandler : public ReadHandler {
                 throw std::runtime_error("Failed to write to output buffer");
             }
         }
+    }
+
+    void flush() override {
+        ::fsync(fd);
     }
 };
 
