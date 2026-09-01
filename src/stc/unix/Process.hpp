@@ -80,7 +80,7 @@ struct LowLevelWrapper {
     }
 
     ssize_t readFromFd(std::stringstream& out, int fd) {
-        std::array<char, 4096> buff;
+        thread_local std::array<char, 4096> buff;
         ssize_t sum = 0;
 
         nfds_t nfds = 1;
@@ -99,7 +99,7 @@ struct LowLevelWrapper {
             );
             if (bytes > 0) {
                 out << std::string_view {
-                    buff.begin(), buff.begin() + bytes 
+                    buff.begin(), buff.begin() + bytes
                 };
                 sum += bytes;
             }
@@ -301,6 +301,11 @@ struct Config {
 
 struct ReadHandler {
     virtual void read(
+        LowLevelWrapper* primitive,
+        std::array<char, 4096>& buff,
+        size_t readBytes
+    ) = 0;
+    virtual void read(
         LowLevelWrapper* primitive
     ) = 0;
     virtual void flush() {}
@@ -308,6 +313,17 @@ struct ReadHandler {
 
 struct InMemoryReadHandler : public ReadHandler {
     std::stringstream ss = {};
+
+    virtual void read(
+        LowLevelWrapper*,
+        std::array<char, 4096>& buff,
+        size_t readBytes
+    ) override {
+        ss << std::string_view {
+            buff.begin(), readBytes
+        };
+    }
+
     virtual void read(
         LowLevelWrapper* primitive
     ) override {
@@ -337,16 +353,12 @@ struct FdRedirectInputHandler : public ReadHandler {
     }
 
     virtual void read(
-        LowLevelWrapper* primitive
+        LowLevelWrapper*,
+        std::array<char, 4096>& buff,
+        size_t readBytes
     ) override {
-        thread_local std::array<char, 4096> buff;
-        ssize_t bytes = primitive->readFromFd(
-            buff,
-            primitive->readFd()
-        );
-
-        if (bytes > 0) {
-            auto written = write(fd, buff.data(), bytes);
+        if (readBytes > 0) {
+            auto written = write(fd, buff.data(), readBytes);
 
             if (written <= 0) {
                 std::cerr << "Writing failed: " << strerror(errno) << std::endl;
@@ -355,10 +367,39 @@ struct FdRedirectInputHandler : public ReadHandler {
         }
     }
 
-    void flush() override {
+    virtual void read(
+        LowLevelWrapper* primitive
+    ) override {
+        thread_local std::array<char, 4096> buff;
+        ssize_t bytes = primitive->readFromFd(
+            buff,
+            primitive->readFd()
+        );
+        read(primitive, buff, bytes);
+    }
+
+    virtual void flush() override {
         ::fsync(fd);
     }
 };
+
+struct TeeInputHandler : public FdRedirectInputHandler, public InMemoryReadHandler {
+    virtual void read(LowLevelWrapper* primitive) override {
+        thread_local std::array<char, 4096> buff;
+        ssize_t bytes = primitive->readFromFd(
+            buff,
+            primitive->readFd()
+        );
+        FdRedirectInputHandler::read(primitive, buff, bytes);
+        InMemoryReadHandler::read(primitive, buff, bytes);
+    }
+    
+    void flush() override {
+        FdRedirectInputHandler::flush();
+        InMemoryReadHandler::flush();
+    }
+};
+
 
 struct ReadHandlers {
     std::shared_ptr<ReadHandler> stdoutHandler, stderrHandler;
@@ -425,7 +466,7 @@ protected:
 
     /**
      * Converts an optional<Environment> to `environ`, or the provided Environment merged with environ (if extendEnviron
-     * == true). 
+     * == true).
      *
      * This function should never be called outside the subprocess. It calls `new std::vector` without cleaning it up to
      * build the environment. This is an intentional memory leak because it does not matter since the memory is
@@ -470,7 +511,7 @@ protected:
                 data->erase(
                     std::remove_if(
                         data->begin(),
-                        data->end(), 
+                        data->end(),
                         [&](const auto& v) -> bool {
                             return strncmp(v, k.data(), k.size()) == 0;
                         }
