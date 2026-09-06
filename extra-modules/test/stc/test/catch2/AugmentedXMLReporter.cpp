@@ -168,6 +168,20 @@ void AugmentedXMLReporter::testCasePartialEnded(const TestCaseStats& stats, uint
         e.writeAttribute("expectedFailures"_sr, stats.totals.assertions.failedButOk);
         e.writeAttribute("skipped"_sr, stats.totals.assertions.skipped > 0);
         e.writeAttribute("success"_sr, stats.totals.assertions.allOk());
+
+        if (!stats.stdOut.empty()) {
+            writer.scopedElement("StdOut").writeText(
+                trim(StringRef(stats.stdOut)),
+                XmlFormatting::Newline
+            );
+        }
+
+        if (!stats.stdErr.empty()) {
+            writer.scopedElement("StdErr").writeText(
+                trim(StringRef(stats.stdErr)),
+                XmlFormatting::Newline
+            );
+        }
     }
     writer.endElement();
 }
@@ -181,6 +195,7 @@ void AugmentedXMLReporter::testCaseEnded(TestCaseStats const& testCaseStats) {
     if (m_config->showDurations() == ShowDurations::Always) {
         e.writeAttribute("durationInSeconds"_sr, timer.getElapsedSeconds());
     }
+    // TODO: do we want to duplicate stdout per whole test case run?
     if (!testCaseStats.stdOut.empty()) {
         writer.scopedElement("StdOut").writeText(
             trim(StringRef(testCaseStats.stdOut)),
