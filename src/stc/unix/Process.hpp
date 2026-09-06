@@ -606,6 +606,9 @@ protected:
                 (char**) convertedCommand.data(),
                 createEnviron(env)
             );
+
+            std::cerr << "Critical: executable " << convertedCommand.at(0) << " failed to start!" << std::endl;
+            std::exit(1);
         } else {
             // Parent process
             if (readImpl != nullptr) {
