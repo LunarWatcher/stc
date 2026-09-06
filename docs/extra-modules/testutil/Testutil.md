@@ -4,7 +4,9 @@ CMake target: `stc::testutil`
 
 Namespace: `stc::testutil`
 
-This module contains utilities meant specifically for testing. 
+This module contains utilities meant specifically for testing.
+
+This module is NOT header-only! The test reporters require being built into a `.cpp` file to be registered.
 
 ## Files
 
@@ -15,3 +17,7 @@ Used for capturing streams, but primarily `std::cout`, `std::cerr`, and `std::ci
 ### ExplicitStreamTestReporter.hpp
 
 Custom Catch2 reporter that handles verbosity better. See also ExplicitStreamTestReporter.md
+
+### AugmentedXMLReporter.hpp
+
+Custom Catch2 reporter that makes the XML format more easily machine-processed

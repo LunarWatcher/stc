@@ -9,7 +9,6 @@ add_executable(tests
     src/StringUtilTests.cpp
 
     src/bench/MathBench.cpp
-    src/bench/MinilogBench.cpp
 
     src/extra-modules/test/CaptureStreamTests.cpp
 
@@ -20,8 +19,6 @@ add_executable(tests
     # Test utils and test util tests
     src/util/TestEnvVariableTests.cpp
     src/util/TestDirectoryTests.cpp
-
-    src/MinilogTests.cpp
 
     # This test does not contain any tests, but is a test through just existing.
     # It includes everything, which forces everything to be evaluated, which means 

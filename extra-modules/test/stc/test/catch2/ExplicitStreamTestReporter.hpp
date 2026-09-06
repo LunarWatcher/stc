@@ -8,6 +8,8 @@
 
 #include <iostream>
 
+namespace stc::testutil {
+
 class ExplicitStreamTestReporter : public Catch::Vendored::ModConsoleReporter {
 public:
     ExplicitStreamTestReporter(Catch::ReporterConfig&& config)
@@ -70,3 +72,5 @@ public:
 };
 
 CATCH_REGISTER_REPORTER("explicit", ExplicitStreamTestReporter)
+
+}

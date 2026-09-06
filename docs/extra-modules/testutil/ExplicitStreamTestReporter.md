@@ -130,20 +130,7 @@ Right now, the explicit reporter only focuses on section logging, but I do plan 
 
 ## Usage
 
-At this time, the reporter is only provided as a header. As far as I can tell, Catch2 requires the reporter to be in the runtime translation unit to register properly. This means you need a custom main file. If you do not have one, this is all you need:
-
-```cpp
-#include <catch2/catch_session.hpp>
-// My editor whines that this is unused, but this is wrong.
-#include "stc/test/catch2/ExplicitStreamTestReporter.hpp"
-
-int main(int argc, const char* argv[]) {
-    auto sess = Catch::Session();
-    return sess.run(argc, argv);
-}
-```
-
-Don't forget to link your tests against `stc::testutil`!
+Link your tests against `stc::testutil`, then you can use `--reporter explicit`.
 
 If you also want to change the default reporter, you can do this with:
 ```cmake
