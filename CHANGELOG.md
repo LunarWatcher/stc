@@ -4,6 +4,10 @@ This changelog is only maintained as of v2026-09-06. Versions prior to this were
 
 The version format is an augmented date format: `vyyyy-mm-dd[.patchnumber]`. `.patchnumber` is only in use when there are multiple releases in one day.
 
+## v2026-09-13
+
+* `stc::Unix::Process`: Added method for exposing the PID
+
 ## v2026-09-06.2
 
 * `stc::testutil`: Fixed Augmented XML reporter not including stdout per test run

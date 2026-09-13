@@ -156,11 +156,13 @@ void AugmentedXMLReporter::assertionEnded(const AssertionStats& assertionStats) 
     }
 }
 
-void AugmentedXMLReporter::testCasePartialStarting(const TestCaseInfo&, uint64_t runNumber) {
+void AugmentedXMLReporter::testCasePartialStarting(const TestCaseInfo& testCaseInfo, uint64_t runNumber) {
+    StreamingReporterBase::testCasePartialStarting(testCaseInfo, runNumber);
     writer.startElement("TestRun")
         .writeAttribute("run-number", std::to_string(runNumber));
 }
-void AugmentedXMLReporter::testCasePartialEnded(const TestCaseStats& stats, uint64_t) {
+void AugmentedXMLReporter::testCasePartialEnded(const TestCaseStats& stats, uint64_t runNumber) {
+    StreamingReporterBase::testCasePartialEnded(stats, runNumber);
     {
         XmlWriter::ScopedElement e = writer.scopedElement("OverallResults");
         e.writeAttribute("successes"_sr, stats.totals.assertions.passed);

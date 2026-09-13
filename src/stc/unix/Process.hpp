@@ -1,12 +1,13 @@
 #pragma once
 
+#include <sched.h>
 #ifdef _WIN32
 #error "Process.hpp is currently UNIX only, and does not support Windows. Feel free to open a PR to change this"
 #endif
 
-/** \file 
+/** \file
  *
- * This file contains a UNIX-only command interface. 
+ * This file contains a UNIX-only command interface.
  * It currently requires a UNIX environment. Windows support may be added in the future, but this will require third
  * party help, as I do not hate myself enough to get that deep into the Windows API, and if we're being realistic, no
  * one writes command line dev tools this involved for that shithole of an OS without a UNIX environment being involved.
@@ -855,6 +856,15 @@ public:
                 ptr->closeWrite();
             }
         }
+    }
+
+    std::optional<int64_t> getPid() {
+        // Recast, largely to avoid exposing pid_t as a dependency or whatever. pid_t is an int, so int64 is absolute
+        // overkill, but it really doesn't matter.
+        if (pid) {
+            return *pid;
+        }
+        return pid;
     }
 
     /**
