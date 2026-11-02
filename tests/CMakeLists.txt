@@ -20,9 +20,11 @@ add_executable(tests
     src/util/TestEnvVariableTests.cpp
     src/util/TestDirectoryTests.cpp
 
+    src/uri/URITests.cpp
+
     # This test does not contain any tests, but is a test through just existing.
     # It includes everything, which forces everything to be evaluated, which means 
-    # I coudl've detected .starts_with() being used when that's a C++20 function
+    # I could've detected .starts_with() being used when that's a C++20 function
     # being used in a C++17 library :facepaw:
     src/compiling/EverythingCompilesTest.cpp
 )
@@ -32,7 +34,7 @@ set(CATCH_CONFIG_DEFAULT_REPORTER "explicit" CACHE STRING "" FORCE)
 FetchContent_Declare(
     Catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG v3.14.0
+    GIT_TAG v3.16.1
 )
 
 FetchContent_MakeAvailable(Catch2)

@@ -17,6 +17,7 @@ Header-only utilities for C++20\* and up. Name inspired by [stb](https://github.
 | `stc/StdFix.hpp` | stdlib fixes | Adds functions to deal with C++ being dumb | |
 | `stc/StringUtil.hpp` | Utility library | Adds a few string operations that C++ does not (but should) have built into strings |  |
 | `stc/unix/Process.hpp` | Utility library | Advanced command line execution; supercedes several `Environment.hpp` functions | UNIX only ([for now](https://github.com/LunarWatcher/stc/issues/3)); **unstable API** |
+| `stc/uri.hpp` | Utility library | Contains a generic URI parser with little validation beyond it being URI-shaped. | |
 
 ### Non-standalone modules
 
