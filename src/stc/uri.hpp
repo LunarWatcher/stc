@@ -6,8 +6,6 @@
 #include <sstream>
 #include <vector>
 
-#include <iostream>
-
 namespace stc {
 
 /**
@@ -123,7 +121,6 @@ private:
 
         if (end != std::string::npos) {
             auto colon = authority.find(':', end);
-            std::cout << "at=" << at << ", colon=" << colon << std::endl;
             if (colon != std::string::npos) {
                 if (colon != authority.size() - 1) {
                     auto portPart = authority.substr(colon + 1);
@@ -153,9 +150,10 @@ private:
 
         // URI parser extension: allow implicit scheme
         // Ignore `:` if it is after a `/` (parser extension: support optional schemes)
-        if (colon != 0 && colon < source.find('/')) {
+        auto firstSpecial = source.find_first_of("?#/");
+        if (colon != 0 && colon < firstSpecial) {
            uriData.scheme = source.substr(0, colon);
-        } else if (colon > source.find('/')) {
+        } else if (colon > firstSpecial) {
             colon = std::string::npos;
         }
         next = colon == std::string::npos ? 0 : (colon + 1);
@@ -206,18 +204,10 @@ private:
         }
     }
 
-    void validate() const {
-        if (!uriData.scheme.has_value() && !uriData.host.has_value()) {
-            throw std::runtime_error(
-                "Attempted to construct URI without a scheme or a host. This is illegal"
-            );
-        }
-    }
 public:
     uri(const char* source) : uri(std::string(source)) {}
     uri(const std::string& source) {
         parse(source);
-        validate();
     }
     uri(const URIComponents& source)
         : uriData(source) {}
@@ -232,7 +222,6 @@ public:
     uri& operator=(const uri& other) noexcept = default;
 
     std::string to_string() const {
-        validate();
         return uriData.to_string();
     }
 

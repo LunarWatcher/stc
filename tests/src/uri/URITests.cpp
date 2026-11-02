@@ -566,9 +566,40 @@ TEST_CASE("Fragment before query", "[uri]") {
     );
 }
 
-TEST_CASE("Assortment of invalid URIs", "[uri]") {
-    REQUIRE_THROWS(
-        stc::uri("invalid")
+TEST_CASE("Path only", "[uri]") {
+    requireEqualUrl(
+        "/test",
+        {
+            .path = "/test"
+        }
+    );
+    requireEqualUrl(
+        "/test?v=69",
+        {
+            .path = "/test",
+            .query = "v=69"
+        }
+    );
+    requireEqualUrl(
+        "/path#fragment:",
+        {
+            .path = "/path",
+            .fragment = "fragment:"
+        }
+    );
+    requireEqualUrl(
+        "path.md#fragment:",
+        {
+            .path = "path.md",
+            .fragment = "fragment:"
+        }
+    );
+    requireEqualUrl(
+        "path.md?fragment:",
+        {
+            .path = "path.md",
+            .query = "fragment:"
+        }
     );
 }
 

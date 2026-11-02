@@ -4,6 +4,14 @@ This changelog is only maintained as of v2026-09-06. Versions prior to this were
 
 The version format is an augmented date format: `vyyyy-mm-dd[.patchnumber]`. `.patchnumber` is only in use when there are multiple releases in one day.
 
+## v2026-11-02.1
+
+* `stc`: Fixed `stc::uri` not supporting paths only
+
+## v2026-11-02
+
+* `stc`: Added `stc::uri` for parsing URIs with fairly little validation
+
 ## v2026-09-13
 
 * `stc::Unix::Process`: Added method for exposing the PID
