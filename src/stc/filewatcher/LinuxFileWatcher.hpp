@@ -1,10 +1,15 @@
 #pragma once
 
 #include "FileWatcherCommon.hpp"
+#include <array>
+#include <cerrno>
 #include <chrono>
+#include <cstdint>
+#include <cstdio>
 #include <filesystem>
 #include <functional>
 #include <mutex>
+#include <stdexcept>
 #include <unordered_map>
 #include <vector>
 
