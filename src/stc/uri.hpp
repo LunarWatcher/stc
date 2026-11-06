@@ -145,6 +145,10 @@ private:
         // reset all the things so this can be used for copies as well
         uriData = {};
 
+        if (source.size() == 0) {
+            return;
+        }
+
         size_t next = 0;
         auto colon = source.find(':', next);
 
@@ -158,7 +162,12 @@ private:
         }
         next = colon == std::string::npos ? 0 : (colon + 1);
 
-        if (next < source.size() - 2 && source.at(next) == '/' && source.at(next + 1) == '/') {
+        if (
+            source.size() > 2
+            && next < source.size() - 2
+            && source.at(next) == '/'
+            && source.at(next + 1) == '/'
+        ) {
             // Authority part
             next += 2;
             auto end = source.find_first_of("?#/", next);

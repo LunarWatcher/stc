@@ -574,6 +574,17 @@ TEST_CASE("Path only", "[uri]") {
         }
     );
     requireEqualUrl(
+        "/",
+        {
+            .path = "/"
+        }
+    );
+    requireEqualUrl(
+        "",
+        {
+        }
+    );
+    requireEqualUrl(
         "/test?v=69",
         {
             .path = "/test",

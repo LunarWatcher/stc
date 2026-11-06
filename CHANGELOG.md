@@ -4,6 +4,10 @@ This changelog is only maintained as of v2026-09-06. Versions prior to this were
 
 The version format is an augmented date format: `vyyyy-mm-dd[.patchnumber]`. `.patchnumber` is only in use when there are multiple releases in one day.
 
+## v2026-11-06.1
+
+* `stc`: Fixed a bug where `uri` throws on empty and single-char URIs 
+
 ## v2026-11-06
 
 * `stc`: Added `filewatcher/FileWatcher.hpp` (Linux only)
