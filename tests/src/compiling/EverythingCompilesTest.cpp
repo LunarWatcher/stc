@@ -5,7 +5,7 @@
 #include <stc/StdFix.hpp>
 #include <stc/StringUtil.hpp>
 
-#ifndef _WIN32
+#if !defined _WIN32 && !defined __APPLE__
 
 #include <stc/filewatcher/FileWatcher.hpp>
 
