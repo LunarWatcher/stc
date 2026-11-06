@@ -202,7 +202,20 @@ public:
                             }
 
                             watcher::FileWatcherEventKind kind;
-                            if ((event->mask & IN_ISDIR) != 0) {
+                            if (
+                                (event->mask & IN_DELETE_SELF) != 0
+                            ) {
+                                // parentIt in DELETE_SELF is the actual watch itself
+                                // Note to self: IN_DELETE_SELF is called without IN_ISDIR
+                                this->watchDescriptors.erase(parentIt);
+                                // Since we separate folder and directory deletion in the type enum, we currently don't
+                                // have a way to differentiate between folder deletion and file deletion. The deletion
+                                // of this folder should usually be accompanied by a IN_DELETE in some parent folder,
+                                // though this does fail if a root folder (meaning a folder that is directly watched
+                                // rather than one that's watched because it's in the file tree) is deleted. I am fine
+                                // with ignoring this edge-case for now.
+                                continue;
+                            } else if ((event->mask & IN_ISDIR) != 0) {
                                 // Directory
                                 if ((event->mask & IN_CREATE) != 0) {
                                     kind = watcher::FileWatcherEventKind::DirectoryAdded;
@@ -223,12 +236,6 @@ public:
                                     kind = watcher::FileWatcherEventKind::FileRemoved;
                                 } else if ((event->mask & IN_CREATE) != 0) {
                                     kind = watcher::FileWatcherEventKind::FileAdded;
-                                } else if (
-                                    (event->mask & IN_DELETE_SELF) != 0
-                                ) {
-                                    // parentIt in DELETE_SELF is the actual watch itself
-                                    this->watchDescriptors.erase(parentIt);
-                                    continue;
                                 } else {
                                     continue;
                                 }
