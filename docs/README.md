@@ -18,6 +18,7 @@ Header-only utilities for C++20\* and up. Name inspired by [stb](https://github.
 | `stc/StringUtil.hpp` | Utility library | Adds a few string operations that C++ does not (but should) have built into strings |  |
 | `stc/unix/Process.hpp` | Utility library | Advanced command line execution; supercedes several `Environment.hpp` functions | UNIX only ([for now](https://github.com/LunarWatcher/stc/issues/3)); **unstable API** |
 | `stc/uri.hpp` | Utility library | Contains a generic URI parser with little validation beyond it being URI-shaped. | |
+| `stc/filewatcher/FileWatcher.hpp` | Utility library | Recursive filesystem watcher. | Linux only (for now) |
 
 ### Non-standalone modules
 
@@ -48,8 +49,7 @@ The general support priority is:
 
 1. Linux/UNIX, broad UNIX support is incidental
 2. Windows
-3. Crapple, though crapple being in third place is misleading. It's _far_ behind Windows, as I have no real interest in developing for an operating system with a 2000 EUR entry fee.
-
+3. Whatever else
 
 The main reason many of the cross-platform wrappers exist is because I'm a Linux main who occasionally wants Windows support, and can't be bothered reimplementing all the Windows-specific shit. That and, as much as I like the Linux/UNIX API, it has enough pitfalls that I don't want to work with it directly by default; wrapping it is still necessary, especially to make good use of RAII in certain cases.
 
