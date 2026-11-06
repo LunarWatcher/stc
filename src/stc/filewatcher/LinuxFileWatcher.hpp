@@ -214,6 +214,8 @@ public:
                                 // though this does fail if a root folder (meaning a folder that is directly watched
                                 // rather than one that's watched because it's in the file tree) is deleted. I am fine
                                 // with ignoring this edge-case for now.
+                                // (We could also store the type in the map, but arsed. Again, this is good enough for
+                                // now, will revisit some of these cases later if they become sufficiently annoying)
                                 continue;
                             } else if ((event->mask & IN_ISDIR) != 0) {
                                 // Directory
