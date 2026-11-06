@@ -178,7 +178,7 @@ private:
             next = end;
         }
 
-        if (next != std::string::npos && source.at(next) != '#' && source.at(next) != '?') {
+        if (next < source.size() && source.at(next) != '#' && source.at(next) != '?') {
             // Path
             auto end = source.find_first_of("?#", next);
             // next += 1;
@@ -197,7 +197,7 @@ private:
             next = end;
         }
 
-        if (next != std::string::npos && next < source.size() && source.at(next) == '?') {
+        if (next < source.size() && next < source.size() && source.at(next) == '?') {
             auto end = source.find('#', next);
             next += 1;
             if (end - next != 0) {
@@ -206,7 +206,7 @@ private:
             next = end;
         }
 
-        if (next != std::string::npos && source.at(next) == '#') {
+        if (next < source.size() && source.at(next) == '#') {
             if (next + 1 != source.size()) {
                 uriData.fragment = source.substr(next + 1);
             }
