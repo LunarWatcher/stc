@@ -4,3 +4,10 @@
 #include <stc/IO.hpp>
 #include <stc/StdFix.hpp>
 #include <stc/StringUtil.hpp>
+
+#ifndef __WIN32__
+
+#include <stc/filewatcher/FileWatcher.hpp>
+
+#endif
+
