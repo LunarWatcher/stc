@@ -24,7 +24,7 @@ private:
 
     std::unordered_map<int, std::filesystem::path> watchDescriptors;
 
-    bool running = false;
+    bool running = true;
     std::mutex m;
     void watch(const std::filesystem::path& path) {
         if (
